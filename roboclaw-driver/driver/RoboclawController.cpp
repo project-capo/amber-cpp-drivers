@@ -36,6 +36,8 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 }
 
 RoboclawController::~RoboclawController() {
+	LOG4CXX_INFO(_logger, "Stopping controller.");
+	 
 	delete _roboclawDriver;
 	delete _amberPipes;
 }
@@ -136,12 +138,15 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 
 	_configuration = new RoboclawConfiguration();
 
+	unsigned int front_rc_address;
+	unsigned int rear_rc_address;
+
 	options_description desc("Roboclaw options");
 	desc.add_options()
 			("roboclaw.uart_port", value<string>(&_configuration->uart_port)->default_value("/dev/ttyO3"))
 			("roboclaw.uart_speed", value<unsigned int>(&_configuration->uart_speed)->default_value(38400))
-			("roboclaw.front_rc_address", value<__u8>(&_configuration->front_rc_address)->default_value(128))
-			("roboclaw.rear_rc_address", value<__u8>(&_configuration->rear_rc_address)->default_value(129))
+			("roboclaw.front_rc_address", value<unsigned int>(&front_rc_address)->default_value(128))
+			("roboclaw.rear_rc_address", value<unsigned int>(&rear_rc_address)->default_value(129))
 			("roboclaw.motors_max_qpps", value<unsigned int>(&_configuration->motors_max_qpps)->default_value(13800))
 			("roboclaw.motors_p_const", value<unsigned int>(&_configuration->motors_p_const)->default_value(65536))
 			("roboclaw.motors_i_const", value<unsigned int>(&_configuration->motors_i_const)->default_value(32768))
@@ -156,16 +161,26 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 		store(parse_config_file<char>(filename, desc), vm);
 		notify(vm);
 
+		_configuration->front_rc_address = (__u8)front_rc_address;
+		_configuration->rear_rc_address = (__u8)rear_rc_address;
+
 	} catch (std::exception& e) {
 		LOG4CXX_ERROR(_logger, "Error in parsing configuration file: " << e.what());
+		exit(1);
 	}
 
 }
 
 int main(int argc, char *argv[]) {
 
-	//BasicConfigurator::configure();
-	PropertyConfigurator::configure("log.config");
+	if (argc < 3) {
+		return 1;
+	}
+
+	const char *confFile = argv[1];
+	const char *logConfFile = argv[2];
+
+	PropertyConfigurator::configure(logConfFile);
 
 	// STDIN_FD = 0, STDOUT_FD = 1
 	// pipe_in_fd = 0, pipe_out_fd = 1
@@ -174,19 +189,6 @@ int main(int argc, char *argv[]) {
 	LOG4CXX_INFO(logger, "-------------");
 	LOG4CXX_INFO(logger, "Creating controller, pipe_in_fd: " << argv[1] << ", pipe_out_fd: " << argv[2]);
 
-	if (argc < 3) {
-		LOG4CXX_FATAL(logger, "Wrong number of parameters: ");
-		return 1;
-	}
-
-	const char *confFile;
-	if (argc == 4) {
-		confFile = argv[3];
-	} else {
-		confFile = "roboclaw.conf";
-	}
-
 	RoboclawController controller(atoi(argv[1]), atoi(argv[2]), confFile);
-
 	controller();
 }

@@ -35,7 +35,9 @@ RoboclawDriver::RoboclawDriver(RoboclawConfiguration *configuration):
 }
 
 RoboclawDriver::~RoboclawDriver() {
+	LOG4CXX_INFO(_logger, "Stopping driver."); 
 	rc_uart_close(_fd);
+
 }
 
 void RoboclawDriver::initializeDriver() {
@@ -44,7 +46,7 @@ void RoboclawDriver::initializeDriver() {
 	_fd = rc_uart_open(_configuration->uart_port.c_str());
 	if (_fd == -1) {
 		LOG4CXX_FATAL(_logger, "Unable to open uart port: " << _configuration->uart_port);
-		return;
+		exit(1);
 	}
 
 	speed_t uart_speed;
@@ -68,7 +70,7 @@ void RoboclawDriver::initializeDriver() {
 
 	default:
 		LOG4CXX_FATAL(_logger, "Unknown uart speed: " << _configuration->uart_speed << ". Aborting.");
-		return;
+		exit(1);
 	}
 
 	LOG4CXX_INFO(_logger, "Initializing driver, port: " << _configuration->uart_port.c_str()
@@ -112,7 +114,6 @@ void RoboclawDriver::stopMotors() {
 
 void RoboclawDriver::sendMotorsEncoderCommand(MotorsCommandStruct *mc) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
-
 
 	if (mc != NULL) {
 		rc_drive_speed(_fd, _configuration->front_rc_address, mc->frontRightSpeed, mc->frontLeftSpeed);

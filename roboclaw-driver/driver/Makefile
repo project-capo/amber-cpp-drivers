@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -static -pedantic -W -Wall -Wextra -Wshadow -Wformat \
+CXXFLAGS = -g -static -pedantic -W -Wall -Wextra -Wshadow -Wformat \
 	-Winit-self -Wunused -Wfloat-equal -Wcast-qual -Wwrite-strings \
 	-Winline -Wstack-protector -Wunsafe-loop-optimizations \
 	-Wlogical-op -Wmissing-include-dirs -Wconversion \
