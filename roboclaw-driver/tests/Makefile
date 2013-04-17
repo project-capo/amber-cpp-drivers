@@ -13,13 +13,13 @@ BINDIR = ../bin/
 BIN_EXECUTABLES = $(patsubst %, $(BINDIR)%, $(EXECUTABLES))
 
 AMBER_COMMON = ../../common
-ROBOCLAW_DRIVER = ../driver
+ROBOCLAW_DRIVER = ../src
 
 INCLUDES = -I$(AMBER_COMMON) -I$(ROBOCLAW_DRIVER)
 
 all: $(BIN_EXECUTABLES)
 
-$(BINDIR)read_tests: read_tests.o ../driver/RoboclawLib.o
+$(BINDIR)read_tests: read_tests.o $(ROBOCLAW_DRIVER)/RoboclawLib.o
 	$(CXX) $^ $(LDFLAGS) -o $@ 
 
 %.o: %.cpp
