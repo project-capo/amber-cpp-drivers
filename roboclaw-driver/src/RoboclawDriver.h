@@ -25,11 +25,11 @@ public:
 	virtual ~RoboclawDriver();
 
 	void initializeDriver();
-	void readCurrentSpeed(__u8 roboclawAddress, CurrentSpeedStruct *currentSpeedStruct);
-	void sendMotorsEncoderCommand(MotorsCommandStruct *mc);
+	void readCurrentSpeed(MotorsSpeedStruct *mss);
+	void sendMotorsEncoderCommand(MotorsSpeedStruct *mss);
+	void readMainBatteryVoltage(__u16 *voltage);
 	void stopMotors();
 
-	boost::interprocess::interprocess_mutex driverReadyMutex;
 	boost::interprocess::interprocess_condition driverIsNotReady;
 	boost::interprocess::interprocess_mutex serialPortMutex;
 

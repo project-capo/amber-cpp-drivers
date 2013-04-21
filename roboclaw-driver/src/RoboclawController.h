@@ -36,15 +36,18 @@ private:
 	AmberPipes *_amberPipes;
 
 	RoboclawConfiguration *_configuration;
+	boost::thread *_batteryMonitorThread;
 
 	static log4cxx::LoggerPtr _logger;
 
 	amber::DriverMsg *buildCurrentSpeedMsg();
 	void sendCurrentSpeedMsg(int receiver, int ackNum);
-	void handleCurrentSpeedRequest(int sender, int synNum, amber::roboclaw_proto::CurrentSpeedRequest *currentSpeedRequest);
-	void handleMotorsEncoderCommand(int sender, int synNum, amber::roboclaw_proto::MotorsQuadCommand *motorsCommand);
+	void handleCurrentSpeedRequest(int sender, int synNum);
+	void handleMotorsEncoderCommand(amber::roboclaw_proto::MotorsSpeed *motorsCommand);
 	void parseConfigurationFile(const char *filename);
+	void batteryMonitor();
 	int toQpps(int in);
+	int toMmps(int in);
 
 };
 

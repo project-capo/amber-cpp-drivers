@@ -41,7 +41,7 @@ RoboclawDriver::~RoboclawDriver() {
 }
 
 void RoboclawDriver::initializeDriver() {
-	scoped_lock<interprocess_mutex> lock(driverReadyMutex);
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
 	_fd = rc_uart_open(_configuration->uart_port.c_str());
 	if (_fd == -1) {
@@ -78,48 +78,109 @@ void RoboclawDriver::initializeDriver() {
 	rc_uart_init(_fd, uart_speed);
 
 	// Setting motors constants
-	rc_set_pid_consts_m1(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
-			_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps);
-	rc_set_pid_consts_m2(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
-				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps);
+	if (rc_set_pid_consts_m1(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
+			_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << _configuration->front_rc_address << ": error");
+	}
+	if (rc_set_pid_consts_m2(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
+				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << _configuration->front_rc_address << ": error");
+	}
 
-	rc_set_pid_consts_m1(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
-				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps);
-	rc_set_pid_consts_m2(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
-				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps);
+	if (rc_set_pid_consts_m1(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
+				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << _configuration->rear_rc_address << ": error");
+	}
+
+	if (rc_set_pid_consts_m2(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
+				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << _configuration->rear_rc_address << ": error");
+	}
 
 	driverReady = true;
 	driverIsNotReady.notify_all();
 }
 
-void RoboclawDriver::readCurrentSpeed(__u8 roboclawAddress, CurrentSpeedStruct *currentSpeedStruct) {
+void RoboclawDriver::readCurrentSpeed(MotorsSpeedStruct *mss) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
-	__u8 m1_direction, m2_direction;
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
 
-	rc_read_speed_m1(_fd, roboclawAddress, &currentSpeedStruct->m1_speed, &m1_direction);
-	currentSpeedStruct->m1_direction = m1_direction == 0 ? false : true;
+	unsigned int flQpps, frQpps, rlQpps, rrQpps;
+	unsigned char flDir, frDir, rlDir, rrDir;
 
-	rc_read_speed_m2(_fd, roboclawAddress, &currentSpeedStruct->m2_speed, &m2_direction);
-	currentSpeedStruct->m2_direction = m2_direction == 0 ? false : true;
+	if (rc_read_speed_m1(_fd, _configuration->front_rc_address, &frQpps, &frDir) < 0) {
+		LOG4CXX_WARN(_logger, "rc_read_speed_m1, "<< _configuration->front_rc_address << ": error");
+	}
 
+	if (rc_read_speed_m2(_fd, _configuration->front_rc_address, &flQpps, &flDir) < 0) {
+		LOG4CXX_WARN(_logger, "rc_read_speed_m2, "<< _configuration->front_rc_address << ": error");
+	}
+
+	if (rc_read_speed_m1(_fd, _configuration->rear_rc_address, &rrQpps, &rrDir) < 0) {
+		LOG4CXX_WARN(_logger, "rc_read_speed_m1, "<< _configuration->rear_rc_address << ": error");
+	}
+
+	if (rc_read_speed_m2(_fd, _configuration->rear_rc_address, &rlQpps, &rlDir) < 0) {
+		LOG4CXX_WARN(_logger, "rc_read_speed_m2, "<< _configuration->rear_rc_address << ": error");
+	}
+
+	mss->frontLeftSpeed = flDir == 0 ? (int)flQpps : -(int)flQpps;
+	mss->frontRightSpeed = frDir == 0 ? (int)frQpps : -(int)frQpps;
+	mss->rearLeftSpeed = rlDir == 0 ? (int)rlQpps : -(int)rlQpps;
+	mss->rearRightSpeed = rrDir == 0 ? (int)rrQpps : -(int)rrQpps;
+
+	LOG4CXX_DEBUG(_logger, "current_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
+	return;
 }
 
 void RoboclawDriver::stopMotors() {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
 	LOG4CXX_INFO(_logger, "Stopping motors.");
 	rc_drive_forward(_fd, _configuration->front_rc_address, 0);
 	rc_drive_forward(_fd, _configuration->rear_rc_address, 0);
 
 }
 
-void RoboclawDriver::sendMotorsEncoderCommand(MotorsCommandStruct *mc) {
+void RoboclawDriver::sendMotorsEncoderCommand(MotorsSpeedStruct *mss) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
-	if (mc != NULL) {
-		rc_drive_speed(_fd, _configuration->front_rc_address, mc->frontRightSpeed, mc->frontLeftSpeed);
-		rc_drive_speed(_fd, _configuration->rear_rc_address, mc->rearRightSpeed, mc->rearLeftSpeed);
-		LOG4CXX_DEBUG(_logger, "rc_drive_speed, fl: " << mc->frontLeftSpeed << ", fr: " << mc->frontRightSpeed << ", rl: " << mc->rearLeftSpeed << ", rr: " << mc->rearRightSpeed);
-		return;
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
 	}
+
+	if (mss != NULL) {
+		LOG4CXX_DEBUG(_logger, "rc_drive_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
+
+		if (rc_drive_speed(_fd, _configuration->front_rc_address, mss->frontRightSpeed, mss->frontLeftSpeed) < 0) {
+			LOG4CXX_WARN(_logger, "rc_read_drive_speed, " << _configuration->front_rc_address << ": error");
+		}
+
+		if (rc_drive_speed(_fd, _configuration->rear_rc_address, mss->rearRightSpeed, mss->rearLeftSpeed) < 0) {
+			LOG4CXX_WARN(_logger, "rc_read_drive_speed, " << _configuration->front_rc_address << ": error");	
+		}
+	}
+}
+
+void RoboclawDriver::readMainBatteryVoltage(__u16 *voltage) {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
+	if (voltage != NULL) {
+		if (rc_read_main_battery_voltage_level(_fd, _configuration->front_rc_address, voltage) < 0) {
+			LOG4CXX_WARN(_logger, "rc_read_main_battery_voltage_level: error");
+		}
+	} 
+
 
 }

@@ -22,7 +22,7 @@ inline void fill_crc(__u8 buf[], int size) {
 }
 
 int rc_uart_open(const char *blockdevice) {
-	return open(blockdevice, O_RDWR | O_NONBLOCK);
+	return open(blockdevice, O_RDWR);
 }
 
 int rc_uart_close(int fd) {
@@ -75,7 +75,7 @@ ssize_t rc_uart_read(int fd, int to_read, __u8 *buf) {
     	buf += received;
     	sum += received;
 
-    	if (received == -1) {
+    	if (received <= 0) {
     		return sum;
     	}
     }
@@ -390,7 +390,7 @@ int rc_read_main_battery_voltage_level(int fd, __u8 rc_address, __u16 *value) {
     	return -1;
     }
 
-    *value = (__u16)((in_buffer[0] << 8) & in_buffer[1]);
+    *value = (__u16)((in_buffer[0] << 8) | in_buffer[1]);
 
     return 0;
 }
@@ -410,7 +410,7 @@ int rc_read_logic_battery_voltage_level(int fd, __u8 rc_address, __u16 *value) {
     	return -1;
     }
 
-    *value = (__u16)((in_buffer[0] << 8) & in_buffer[1]);
+    *value = (__u16)((in_buffer[0] << 8) | in_buffer[1]);
 
     return 0;
 }
@@ -470,7 +470,7 @@ int rc_read_encoder_register_m1(int fd, __u8 rc_address, __u32 *value, __u8 *sta
     	return -1;
     }
 
-    *value = (in_buffer[0] << 24) & (in_buffer[1] << 16) & (in_buffer[2] << 8) & in_buffer[3];
+    *value = (in_buffer[0] << 24) | (in_buffer[1] << 16) | (in_buffer[2] << 8) | in_buffer[3];
     *status = in_buffer[4];
 
     return 0;
@@ -495,13 +495,13 @@ int rc_read_encoder_register_m2(int fd, __u8 rc_address, __u32 *value, __u8 *sta
     	return -1;
     }
 
-	*value = (in_buffer[0] << 24) & (in_buffer[1] << 16) & (in_buffer[2] << 8) & in_buffer[3];
+	*value = (in_buffer[0] << 24) | (in_buffer[1] << 16) | (in_buffer[2] << 8) | in_buffer[3];
 	*status = in_buffer[4];
 
 	return 0;
 }
 
-int rc_read_speed_m1(int fd, __u8 rc_address, __s32 *value, __u8 *direction) {
+int rc_read_speed_m1(int fd, __u8 rc_address, __u32 *value, __u8 *direction) {
 	const ssize_t command_size = 2;
 
     __u8 buffer[2] = {
@@ -527,7 +527,7 @@ int rc_read_speed_m1(int fd, __u8 rc_address, __s32 *value, __u8 *direction) {
 }
 
 
-int rc_read_speed_m2(int fd, __u8 rc_address, __s32 *value, __u8 *direction) {
+int rc_read_speed_m2(int fd, __u8 rc_address, __u32 *value, __u8 *direction) {
 	const ssize_t command_size = 2;
 
     __u8 buffer[2] = {
@@ -662,7 +662,7 @@ int rc_read_speed125_m1(int fd, __u8 rc_address, __u32 *value) {
     	return -1;
     }
 
-	*value = (in_buffer[0] << 24) & (in_buffer[1] << 16) & (in_buffer[2] << 8) & in_buffer[3];
+	*value = (in_buffer[0] << 24) | (in_buffer[1] << 16) | (in_buffer[2] << 8) | in_buffer[3];
 
 	return 0;
 }
@@ -687,7 +687,7 @@ int rc_read_speed125_m2(int fd, __u8 rc_address, __u32 *value) {
     	return -1;
     }
 
-	*value = (in_buffer[0] << 24) & (in_buffer[1] << 16) & (in_buffer[2] << 8) & in_buffer[3];
+	*value = (in_buffer[0] << 24) | (in_buffer[1] << 16) | (in_buffer[2] << 8) | in_buffer[3];
 
 	return 0;
 }

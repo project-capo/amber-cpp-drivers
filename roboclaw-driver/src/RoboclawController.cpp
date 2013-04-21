@@ -32,7 +32,10 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 
 	_roboclawDriver->initializeDriver();
 
-	//_logger->setLevel(Level::getOff());
+	if (_configuration->battery_monitor_interval > 0) {
+		_batteryMonitorThread = new boost::thread(boost::bind(&RoboclawController::batteryMonitor, this));	
+	}
+	
 }
 
 RoboclawController::~RoboclawController() {
@@ -43,7 +46,6 @@ RoboclawController::~RoboclawController() {
 }
 
 void RoboclawController::handleDataMsg(amber::DriverHdr *driverHdr, amber::DriverMsg *driverMsg) {
-
 	LOG4CXX_DEBUG(_logger, "Message came");
 
 	// TODO: hack for now
@@ -57,10 +59,12 @@ void RoboclawController::handleDataMsg(amber::DriverHdr *driverHdr, amber::Drive
 			return;
 		}
 
-		handleCurrentSpeedRequest(clientId, driverMsg->synnum(), driverMsg->MutableExtension(roboclaw_proto::currentSpeedRequest));
+		if (driverMsg->GetExtension(roboclaw_proto::currentSpeedRequest)) {
+			handleCurrentSpeedRequest(clientId, driverMsg->synnum());	
+		}
 
 	} else if (driverMsg->HasExtension(roboclaw_proto::motorsCommand)) {
-		handleMotorsEncoderCommand(clientId, driverMsg->synnum(), driverMsg->MutableExtension(roboclaw_proto::motorsCommand));
+		handleMotorsEncoderCommand(driverMsg->MutableExtension(roboclaw_proto::motorsCommand));
 	}
 }
 
@@ -75,20 +79,26 @@ void RoboclawController::operator()() {
 }
 
 amber::DriverMsg *RoboclawController::buildCurrentSpeedMsg() {
-	scoped_lock<interprocess_mutex> lock(_roboclawDriver->serialPortMutex);
-
-	//_stargazerDriver->dataNotReady.wait(lock);
-
 	amber::DriverMsg *message = new amber::DriverMsg();
 	message->set_type(amber::DriverMsg_MsgType_DATA);
 
-	// TODO: building current speed message
+	roboclaw_proto::MotorsSpeed *currentSpeed = message->MutableExtension(roboclaw_proto::currentSpeed);
+
+	MotorsSpeedStruct mc;
+	_roboclawDriver->readCurrentSpeed(&mc);
+
+	currentSpeed->set_frontleftspeed(toMmps(mc.frontLeftSpeed));
+	currentSpeed->set_frontrightspeed(toMmps(mc.frontRightSpeed));
+	currentSpeed->set_rearleftspeed(toMmps(mc.rearLeftSpeed));
+	currentSpeed->set_rearrightspeed(toMmps(mc.rearRightSpeed));
 
 	return message;
 }
 
 
 void RoboclawController::sendCurrentSpeedMsg(int receiver, int ackNum) {
+	LOG4CXX_DEBUG(_logger, "Sending currentSpeedRequest message");
+
 	amber::DriverMsg *currentSpeedMsg = buildCurrentSpeedMsg();
 	currentSpeedMsg->set_acknum(ackNum);
 	amber::DriverHdr *header = new amber::DriverHdr();
@@ -101,17 +111,16 @@ void RoboclawController::sendCurrentSpeedMsg(int receiver, int ackNum) {
 }
 
 
-void RoboclawController::handleCurrentSpeedRequest(int sender, int synNum, amber::roboclaw_proto::CurrentSpeedRequest *currentSpeedRequest) {
-	LOG4CXX_INFO(_logger, "Got CurrentSpeedRequest message");
+void RoboclawController::handleCurrentSpeedRequest(int sender, int synNum) {
+	LOG4CXX_DEBUG(_logger, "Handling currentSpeedRequest message");
 
-	LOG4CXX_WARN(_logger, "CurrentSpeedRequest message not implemented yet. Ignoring.");
+	sendCurrentSpeedMsg(sender, synNum);
 }
 
-void RoboclawController::handleMotorsEncoderCommand(int sender, int synNum, amber::roboclaw_proto::MotorsQuadCommand *motorsCommand) {
+void RoboclawController::handleMotorsEncoderCommand(roboclaw_proto::MotorsSpeed *motorsCommand) {
+	LOG4CXX_DEBUG(_logger, "Handling motorsEncoderCommand message");
+	MotorsSpeedStruct mc;
 
-	MotorsCommandStruct mc;
-
-	// m1
 	mc.frontLeftSpeed = toQpps(motorsCommand->frontleftspeed());
 	mc.frontRightSpeed = toQpps(motorsCommand->frontrightspeed());
 	mc.rearLeftSpeed = toQpps(motorsCommand->rearleftspeed());
@@ -121,19 +130,37 @@ void RoboclawController::handleMotorsEncoderCommand(int sender, int synNum, ambe
 }
 
 int RoboclawController::toQpps(int in) {
-
-	double rpm = in / (double)(_configuration->wheel_radius * M_PI * 2);
-
-	int out = (int)(rpm * _configuration->pulses_per_revolution);
+	double rps = in / (double)(_configuration->wheel_radius * M_PI * 2);
+	int out = (int)(rps * _configuration->pulses_per_revolution);
 
 	LOG4CXX_DEBUG(_logger, "toOpps: " << in << ", " <<  out);
 
 	return out;
 }
 
+int RoboclawController::toMmps(int in) {
+	int out = (int)(in * (int)_configuration->wheel_radius * M_PI * 2 / (double)_configuration->pulses_per_revolution);
+	
+	LOG4CXX_DEBUG(_logger, "toMmps: " << in << ", " <<  out);
+
+	return out;
+}
+
+void RoboclawController::batteryMonitor() {
+	LOG4CXX_INFO(_logger, "Battery monitor thread started, interval: " << _configuration->battery_monitor_interval);
+
+	__u16 voltage;
+
+	while (1) {
+		boost::this_thread::sleep(boost::posix_time::seconds(_configuration->battery_monitor_interval)); 
+		_roboclawDriver->readMainBatteryVoltage(&voltage);
+		
+		LOG4CXX_INFO(_logger, "Main battery voltage level: " << voltage/10.0 << "V");
+	}
+	
+}
 
 void RoboclawController::parseConfigurationFile(const char *filename) {
-
 	LOG4CXX_INFO(_logger, "Parsing configuration file: " << filename);
 
 	_configuration = new RoboclawConfiguration();
@@ -152,7 +179,8 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 			("roboclaw.motors_i_const", value<unsigned int>(&_configuration->motors_i_const)->default_value(32768))
 			("roboclaw.motors_d_const", value<unsigned int>(&_configuration->motors_d_const)->default_value(16384))
 			("roboclaw.pulses_per_revolution", value<unsigned int>(&_configuration->pulses_per_revolution)->default_value(1865))
-			("roboclaw.wheel_radius", value<unsigned int>(&_configuration->wheel_radius)->default_value(60));
+			("roboclaw.wheel_radius", value<unsigned int>(&_configuration->wheel_radius)->default_value(60))
+			("roboclaw.battery_monitor_interval", value<unsigned int>(&_configuration->battery_monitor_interval)->default_value(60));
 
 
 	variables_map vm;
@@ -186,9 +214,9 @@ int main(int argc, char *argv[]) {
 	// pipe_in_fd = 0, pipe_out_fd = 1
 	LoggerPtr logger (Logger::getLogger("main"));
 
-	LOG4CXX_INFO(logger, "-------------");
-	LOG4CXX_INFO(logger, "Creating controller, pipe_in_fd: " << argv[1] << ", pipe_out_fd: " << argv[2]);
+	LOG4CXX_INFO(logger, "-------------");	 
+	LOG4CXX_INFO(logger, "Creating controller, config_file: " << argv[1] << ", log_config_file: " << argv[2]);
 
-	RoboclawController controller(atoi(argv[1]), atoi(argv[2]), confFile);
+	RoboclawController controller(0, 1, confFile);
 	controller();
 }

@@ -7,6 +7,7 @@
 
 void read_firmware_version(int fd, __u8 address);
 void read_speed(int fd, __u8 address);
+void read_battery(int fd, __u8 address);
 
 void read_firmware_version(int fd, __u8 address) {
 	__u8 buf[100];
@@ -21,7 +22,7 @@ void read_firmware_version(int fd, __u8 address) {
 }
 
 void read_speed(int fd, __u8 address) {
-	int m1_value, m2_value;
+	unsigned int m1_value, m2_value;
 	__u8 m1_dir, m2_dir;
 
 	printf ("%d: read speed:\n", address);
@@ -40,6 +41,20 @@ void read_speed(int fd, __u8 address) {
 		address, m1_value, m1_dir, m2_value, m2_dir);
 }
 
+void read_battery(int fd, __u8 address) {
+	__u16 voltage;
+
+	printf ("%d: read main battery:\n", address);
+
+	if (rc_read_main_battery_voltage_level(fd, 128, &voltage) == -1) {
+		printf("%d: read main battery: error.\n", address);
+		return;
+	}
+
+	printf("%d: main_battery: %d\n", 
+		address, voltage);
+}
+
 
 int main() {
 
@@ -53,6 +68,9 @@ int main() {
 
 	read_speed(fd, 128);
 	read_speed(fd, 129);	
+
+	read_battery(fd, 128);
+	read_battery(fd, 129);
 
 	rc_uart_close(fd);
 	return 0;

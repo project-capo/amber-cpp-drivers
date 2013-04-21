@@ -78,10 +78,10 @@ int rc_read_encoder_register_m2(int fd, __u8 rc_address, __u32 *value, __u8 *sta
 
 
 //18 - Read Speed M1
-int rc_read_speed_m1(int fd, __u8 rc_address, __s32 *value, __u8 *direction);
+int rc_read_speed_m1(int fd, __u8 rc_address, __u32 *value, __u8 *direction);
 
 // 19 - Read Speed M2
-int rc_read_speed_m2(int fd, __u8 rc_address, __s32 *value, __u8 *direction);
+int rc_read_speed_m2(int fd, __u8 rc_address, __u32 *value, __u8 *direction);
 
 // 20 - Reset Quadrature Encoder Counters
 int rc_reset_encoder_counters(int fd, __u8 rc_address);

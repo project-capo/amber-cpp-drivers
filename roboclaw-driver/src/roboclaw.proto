@@ -6,30 +6,12 @@ import "drivermsg.proto";
 
 extend amber.DriverMsg {
 
-	optional MotorsQuadCommand motorsCommand = 10;
-	optional CurrentSpeedRequest currentSpeedRequest = 11;
-	optional CurrentSpeed currentSpeed = 12;
+	optional MotorsSpeed motorsCommand = 10;
+	optional bool currentSpeedRequest = 11;
+	optional MotorsSpeed currentSpeed = 12;
 }
 
-message MotorsQuadCommand {
-
-	optional int32 frontLeftSpeed = 1;
-	optional int32 frontRightSpeed = 2;
-	optional int32 rearLeftSpeed = 3;
-	optional int32 rearRightSpeed = 4;
-
-}
-
-message CurrentSpeedRequest {
-
-	optional bool frontLeftSpeed = 1;
-	optional bool frontRightSpeed = 2;
-	optional bool rearLeftSpeed = 3;
-	optional bool rearRightSpeed = 4;
-
-}
-
-message CurrentSpeed {
+message MotorsSpeed {
 
 	optional int32 frontLeftSpeed = 1;
 	optional int32 frontRightSpeed = 2;

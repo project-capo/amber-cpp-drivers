@@ -11,16 +11,7 @@
 #include <linux/types.h>
 #include <string>
 
-struct CurrentSpeedStruct {
-	int m1_speed;
-	bool m1_direction;
-	int m2_speed;
-	bool m2_direction;
-
-	CurrentSpeedStruct(): m1_speed(0), m2_speed(0) {}
-};
-
-struct MotorsCommandStruct {
+struct MotorsSpeedStruct {
 
 	int frontLeftSpeed;
 	int frontRightSpeed;
@@ -44,6 +35,9 @@ struct RoboclawConfiguration {
 
 	__u32 pulses_per_revolution;
 	__u32 wheel_radius;
+	
+	__u32 battery_monitor_interval;
+
 };
 
 
