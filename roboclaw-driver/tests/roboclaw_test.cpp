@@ -2,8 +2,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <linux/types.h>
-#include "uart.h"
-#include "roboclaw_lib.h"
+#include "RoboclawLib.h"
 
 int main(int argc, char *argv[]) {
 
@@ -21,8 +20,8 @@ int main(int argc, char *argv[]) {
 	unsigned int i = 32768;
 	unsigned int d = 16384;
 
-	fd = uart_open("/dev/ttyO3");
-	uart_init(fd, B38400);
+	fd = rc_uart_open("/dev/ttyO3");
+	rc_uart_init(fd, B38400);
 
 	rc_set_pid_consts_m1(fd, 128, d, p, i, qpps);
 	rc_set_pid_consts_m2(fd, 128, d, p, i, qpps);
@@ -43,7 +42,7 @@ int main(int argc, char *argv[]) {
 	//rc_drive_speed_accel(fd, 128, 1000, speedL, speedR);
 	//rc_drive_speed_accel(fd, 129, 1000, speedR, speedL);
 
-	uart_close(fd);
+	rc_uart_close(fd);
 	
 	return 0;
 }

@@ -13,7 +13,7 @@ void read_firmware_version(int fd, __u8 address) {
 	__u8 buf[100];
 
 	printf ("%d: read firmware version:\n", address);
-	if (rc_read_firmware_version(fd, 128, buf) <= 0) {
+	if (rc_read_firmware_version(fd, address, buf) <= 0) {
 		printf("%d: error.\n", address);
 		return;
 	}
@@ -27,12 +27,12 @@ void read_speed(int fd, __u8 address) {
 
 	printf ("%d: read speed:\n", address);
 
-	if (rc_read_speed_m1(fd, 128, &m1_value, &m1_dir) == -1) {
+	if (rc_read_speed_m1(fd, address, &m1_value, &m1_dir) == -1) {
 		printf("%d: m1_speed error.\n", address);
 		return;
 	}
 
-	if (rc_read_speed_m2(fd, 128, &m2_value, &m2_dir) == -1) {
+	if (rc_read_speed_m2(fd, address, &m2_value, &m2_dir) == -1) {
 		printf("%d: m2_speed error.\n", address);
 		return;
 	}
@@ -46,7 +46,7 @@ void read_battery(int fd, __u8 address) {
 
 	printf ("%d: read main battery:\n", address);
 
-	if (rc_read_main_battery_voltage_level(fd, 128, &voltage) == -1) {
+	if (rc_read_main_battery_voltage_level(fd, address, &voltage) == -1) {
 		printf("%d: read main battery: error.\n", address);
 		return;
 	}
@@ -59,7 +59,7 @@ void read_battery(int fd, __u8 address) {
 int main() {
 
 	int fd;
-
+ 
 	fd = rc_uart_open("/dev/ttyO3");
 	rc_uart_init(fd, B38400);
 
@@ -75,3 +75,4 @@ int main() {
 	rc_uart_close(fd);
 	return 0;
 }
+ 

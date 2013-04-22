@@ -80,21 +80,21 @@ void RoboclawDriver::initializeDriver() {
 	// Setting motors constants
 	if (rc_set_pid_consts_m1(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
 			_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << _configuration->front_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << (int)_configuration->front_rc_address << ": error");
 	}
 	if (rc_set_pid_consts_m2(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
 				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << _configuration->front_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->front_rc_address << ": error");
 	}
 
 	if (rc_set_pid_consts_m1(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
 				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << _configuration->rear_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << (int)_configuration->rear_rc_address << ": error");
 	}
 
 	if (rc_set_pid_consts_m2(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
 				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << _configuration->rear_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->rear_rc_address << ": error");
 	}
 
 	driverReady = true;
@@ -112,19 +112,19 @@ void RoboclawDriver::readCurrentSpeed(MotorsSpeedStruct *mss) {
 	unsigned char flDir, frDir, rlDir, rrDir;
 
 	if (rc_read_speed_m1(_fd, _configuration->front_rc_address, &frQpps, &frDir) < 0) {
-		LOG4CXX_WARN(_logger, "rc_read_speed_m1, "<< _configuration->front_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_read_speed_m1, " << (int)_configuration->front_rc_address << ": error");
 	}
 
 	if (rc_read_speed_m2(_fd, _configuration->front_rc_address, &flQpps, &flDir) < 0) {
-		LOG4CXX_WARN(_logger, "rc_read_speed_m2, "<< _configuration->front_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_read_speed_m2, " << (int)_configuration->front_rc_address << ": error");
 	}
 
 	if (rc_read_speed_m1(_fd, _configuration->rear_rc_address, &rrQpps, &rrDir) < 0) {
-		LOG4CXX_WARN(_logger, "rc_read_speed_m1, "<< _configuration->rear_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_read_speed_m1, " << (int)_configuration->rear_rc_address << ": error");
 	}
 
 	if (rc_read_speed_m2(_fd, _configuration->rear_rc_address, &rlQpps, &rlDir) < 0) {
-		LOG4CXX_WARN(_logger, "rc_read_speed_m2, "<< _configuration->rear_rc_address << ": error");
+		LOG4CXX_WARN(_logger, "rc_read_speed_m2, " << (int)_configuration->rear_rc_address << ": error");
 	}
 
 	mss->frontLeftSpeed = flDir == 0 ? (int)flQpps : -(int)flQpps;
@@ -160,11 +160,11 @@ void RoboclawDriver::sendMotorsEncoderCommand(MotorsSpeedStruct *mss) {
 		LOG4CXX_DEBUG(_logger, "rc_drive_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
 
 		if (rc_drive_speed(_fd, _configuration->front_rc_address, mss->frontRightSpeed, mss->frontLeftSpeed) < 0) {
-			LOG4CXX_WARN(_logger, "rc_read_drive_speed, " << _configuration->front_rc_address << ": error");
+			LOG4CXX_WARN(_logger, "rc_read_drive_speed, " << (int)_configuration->front_rc_address << ": error");
 		}
 
 		if (rc_drive_speed(_fd, _configuration->rear_rc_address, mss->rearRightSpeed, mss->rearLeftSpeed) < 0) {
-			LOG4CXX_WARN(_logger, "rc_read_drive_speed, " << _configuration->front_rc_address << ": error");	
+			LOG4CXX_WARN(_logger, "rc_read_drive_speed, " << (int)_configuration->rear_rc_address << ": error");	
 		}
 	}
 }

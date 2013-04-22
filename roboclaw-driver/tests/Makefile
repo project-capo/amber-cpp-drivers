@@ -7,7 +7,7 @@ CXXFLAGS = -static -pedantic -W -Wall -Wextra -Wshadow -Wformat \
 
 LDFLAGS = -lrt -lpthread -lboost_thread -lprotobuf -llog4cxx -lboost_program_options
 
-EXECUTABLES = read_tests
+EXECUTABLES = read_tests roboclaw_test
 BINDIR = ../bin/
 
 BIN_EXECUTABLES = $(patsubst %, $(BINDIR)%, $(EXECUTABLES))
@@ -20,6 +20,9 @@ INCLUDES = -I$(AMBER_COMMON) -I$(ROBOCLAW_DRIVER)
 all: $(BIN_EXECUTABLES)
 
 $(BINDIR)read_tests: read_tests.o $(ROBOCLAW_DRIVER)/RoboclawLib.o
+	$(CXX) $^ $(LDFLAGS) -o $@ 
+
+$(BINDIR)roboclaw_test: roboclaw_test.o $(ROBOCLAW_DRIVER)/RoboclawLib.o
 	$(CXX) $^ $(LDFLAGS) -o $@ 
 
 %.o: %.cpp
