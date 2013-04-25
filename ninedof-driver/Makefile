@@ -1,4 +1,4 @@
-SUBDIRS = src
+SUBDIRS = src tests
 
 all: 
 	-for dir in $(SUBDIRS); do (cd $$dir; $(MAKE) ); done
