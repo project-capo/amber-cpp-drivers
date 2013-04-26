@@ -89,7 +89,7 @@ void NinedofDriver::initializeDriver() {
 	}
 	
 	/* CTRL_REG4_A: scale, high res update mode */
-	tmp = 0x08;
+	tmp = 0x18;
 	if(i2c_write(_fd, ACCEL_ADDRESS, ACCEL_CTRL_REG4_A, 1, &tmp) != 1) {
 		LOG4CXX_FATAL(logger, "Unable to write CTRL_REG4A");
 		exit(1);

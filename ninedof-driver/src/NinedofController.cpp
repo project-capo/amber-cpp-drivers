@@ -82,6 +82,19 @@ void NinedofController::sendSensorDataMsg(int receiver, int ackNum, bool accel, 
 	delete header;
 }
 
+
+int NinedofController::toMilliG(__s16 value) {
+	return (int) (value / (double)ACCEL_LSB_PER_MILLIG);
+}
+
+int NinedofController::toMilliGauss(__s16 value) {
+	return (int) (value / (double)MAGNET_LSB_PER_MILLIGAUSS);
+}
+
+int NinedofController::toDPS(__s16 value) {
+	return (int) (value / (double)GYRO_LSB_PER_DPS);
+}
+
 DriverMsg *NinedofController::buildSensorDataMsg(bool accel, bool gyro, bool magnet) {
 	scoped_lock<interprocess_mutex> lock(_ninedofDriver->dataMutex);
 
@@ -100,23 +113,23 @@ DriverMsg *NinedofController::buildSensorDataMsg(bool accel, bool gyro, bool mag
 	ninedof_proto::SensorData::AxisData *axisData;
 	if (accel) {
 		axisData = sensorData->mutable_accel();
-		axisData->set_xaxis(_dataStruct->accel.x_axis);
-		axisData->set_yaxis(_dataStruct->accel.y_axis);
-		axisData->set_zaxis(_dataStruct->accel.z_axis);
+		axisData->set_xaxis(toMilliG(_dataStruct->accel.x_axis));
+		axisData->set_yaxis(toMilliG(_dataStruct->accel.y_axis));
+		axisData->set_zaxis(toMilliG(_dataStruct->accel.z_axis));
 	}
 
 	if (gyro) {
 		axisData = sensorData->mutable_gyro();
-		axisData->set_xaxis(_dataStruct->gyro.x_axis);
-		axisData->set_yaxis(_dataStruct->gyro.y_axis);
-		axisData->set_zaxis(_dataStruct->gyro.z_axis);
+		axisData->set_xaxis(toDPS(_dataStruct->gyro.x_axis));
+		axisData->set_yaxis(toDPS(_dataStruct->gyro.y_axis));
+		axisData->set_zaxis(toDPS(_dataStruct->gyro.z_axis));
 	}
 
 	if (magnet) {
 		axisData = sensorData->mutable_magnet();
-		axisData->set_xaxis(_dataStruct->magnet.x_axis);
-		axisData->set_yaxis(_dataStruct->magnet.y_axis);
-		axisData->set_zaxis(_dataStruct->magnet.z_axis);
+		axisData->set_xaxis(toMilliGauss(_dataStruct->magnet.x_axis));
+		axisData->set_yaxis(toMilliGauss(_dataStruct->magnet.y_axis));
+		axisData->set_zaxis(toMilliGauss(_dataStruct->magnet.z_axis));
 	}
 
 	return message;

@@ -18,6 +18,10 @@
 #include "drivermsg.pb.h"
 #include "ninedof.pb.h"
 
+#define ACCEL_LSB_PER_MILLIG (32768 / 4000.0)
+#define MAGNET_LSB_PER_MILLIGAUSS 0.23
+#define GYRO_LSB_PER_DPS (32768 / 500.0)
+
 struct NinedofSchedulerEntry {
 	const bool accel;
 	const bool gyro;
@@ -58,6 +62,10 @@ private:
 
 	amber::DriverMsg *buildSensorDataMsg(bool accel, bool gyro, bool magnet);
 	void parseConfigurationFile(const char *filename);
+
+	int toMilliG(__s16 value);
+	int toMilliGauss(__s16 value);
+	int toDPS(__s16 value);
 };
 
 #endif /* NINEDOFCONTROLLER_H_ */
