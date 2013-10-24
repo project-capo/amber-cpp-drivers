@@ -8,6 +8,8 @@
 void read_firmware_version(int fd, __u8 address);
 void read_speed(int fd, __u8 address);
 void read_battery(int fd, __u8 address);
+void read_temperature(int fd, __u8 address);
+void read_error_status(int fd, __u8 address);
 
 void read_firmware_version(int fd, __u8 address) {
 	__u8 buf[100];
@@ -55,6 +57,70 @@ void read_battery(int fd, __u8 address) {
 		address, voltage);
 }
 
+void read_temperature(int fd, __u8 address) {
+	__u16 temperature;
+
+	printf ("%d: read temperature:\n", address);
+
+	if (rc_read_temperature(fd, address, &temperature) == -1) {
+		printf("%d: read temperature: error.\n", address);
+		return;
+	}
+
+	printf("%d: temperature: %d\n", 
+		address, temperature);
+}
+
+void read_error_status(int fd, __u8 address) {
+	__u8 error;
+
+	printf ("%d: read error status:\n", address);
+
+	if (rc_read_error_status(fd, address, &error) == -1) {
+		printf("%d: read error status: error.\n", address);
+		return;
+	}
+
+	switch (error) {
+		case RC_ERROR_NORMAL:
+			printf("%d: no error\n", address);
+			break;
+
+		case RC_ERROR_M1_OVERCURRENT:
+			printf("%d: m1 overcurrent\n", address);
+			break;
+
+		case RC_ERROR_M2_OVERCURRENT:
+			printf("%d: m2 overcurrent\n", address);
+			break;
+
+		case RC_ERROR_ESTOP:
+			printf("%d: e-stop\n", address);
+			break;
+
+		case RC_ERROR_TEMPERATURE:
+			printf("%d: temperature\n", address);
+			break;
+
+		case RC_ERROR_MAIN_BATTERY_HIGH:
+			printf("%d: main_battery_high\n", address);
+			break;
+
+		case RC_ERROR_MAIN_BATTERY_LOW:
+			printf("%d: main_battery_low\n", address);
+			break;
+
+		case RC_ERROR_LOGIC_BATTERY_HIGH:
+			printf("%d: logic_battery_high\n", address);
+			break;
+
+		case RC_ERROR_LOGIC_BATTERY_LOW:
+			printf("%d: logic_battery_low\n", address);
+			break;
+	}
+}
+
+
 
 int main() {
 
@@ -71,6 +137,12 @@ int main() {
 
 	read_battery(fd, 128);
 	read_battery(fd, 129);
+
+	read_temperature(fd, 128);
+	read_temperature(fd, 129);
+
+	read_error_status(fd, 128);
+	read_error_status(fd, 129);
 
 	rc_uart_close(fd);
 	return 0;

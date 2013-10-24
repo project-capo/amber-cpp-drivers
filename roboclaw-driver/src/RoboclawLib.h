@@ -11,6 +11,15 @@ ssize_t rc_uart_read(int fd, int to_read, __u8 *buf);
 int rc_uart_flush_input(int fd);
 int rc_uart_close(int fd);
 
+#define RC_ERROR_NORMAL 0x00
+#define RC_ERROR_M1_OVERCURRENT 0x01
+#define RC_ERROR_M2_OVERCURRENT 0x02
+#define RC_ERROR_ESTOP 0x04
+#define RC_ERROR_TEMPERATURE 0x08
+#define RC_ERROR_MAIN_BATTERY_HIGH 0x10
+#define RC_ERROR_MAIN_BATTERY_LOW 0x20
+#define RC_ERROR_LOGIC_BATTERY_HIGH 0x40
+#define RC_ERROR_LOGIC_BATTERY_LOW 0x80
 
 // 0 - Drive Forward M1
 int rc_drive_forward_m1(int fd, __u8 rc_address, __u8 speed); 
@@ -138,6 +147,16 @@ int rc_buffered_m2_drive_speed_accel_dist(int fd, __u8 rc_address, __u32 accel, 
 // 46 - Buffered Mix Mode Drive M1 / M2 With Signed Speed, Accel And Distance
 int rc_buffered_drive_speed_accel_dist(int fd, __u8 rc_address, __u32 accel, __s32 speed_m1, __u32 dist_m1, __s32 speed_m2, __u32 dist_m2, __u8 now);
 
+// 82 Read Temperature
+int rc_read_temperature(int fd, __u8 rc_address, __u16* value);
+
+// 90 - Read Error Status
+int rc_read_error_status(int fd, __u8 rc_address, __u8* error);
+
+
+
+
+
 #define CRC(x) static_cast<__u8>((x) & 0x7F)
 #define BYTE(x, n) static_cast<__u8>((x >> (8 * n)) & 0xFF)
 
@@ -209,5 +228,11 @@ int rc_buffered_drive_speed_accel_dist(int fd, __u8 rc_address, __u32 accel, __s
 #define READ_BUFFER_LENGTH 47
 #define SET_PWM_RESOLUTION 48
 
+/*
+* Other
+*/
+
+#define READ_TEMPERATURE 82
+#define READ_ERROR_STATUS 90
 
 #endif
