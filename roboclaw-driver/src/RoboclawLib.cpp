@@ -88,6 +88,42 @@ int rc_uart_flush_input(int fd) {
 }
 
 
+int rc_gpio_open(const char *gpio_path) {
+    return open(gpio_path, O_WRONLY);
+}
+
+int rc_gpio_set(int gpio_fd, __u8 value) {
+    const char *command;
+
+    if (value == 0) {
+        command = "0";
+    } else {
+        command = "1";
+    }
+
+    ssize_t res = write(gpio_fd, command, 1);
+    if (res < 0) {
+        return -1;
+    }
+
+    return res;
+}
+
+int rc_reset(int gpio_fd) {
+
+    if (rc_gpio_set(gpio_fd, 0) < 0) {
+        return -1;
+    }
+
+    boost::this_thread::sleep(boost::posix_time::microseconds(500));
+    
+    if (rc_gpio_set(gpio_fd, 1) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
 
 int rc_drive_forward_m1(int fd, __u8 rc_address, __u8 speed) {
 	const ssize_t command_size = 4;

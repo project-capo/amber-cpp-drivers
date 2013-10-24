@@ -11,6 +11,11 @@ ssize_t rc_uart_read(int fd, int to_read, __u8 *buf);
 int rc_uart_flush_input(int fd);
 int rc_uart_close(int fd);
 
+int rc_gpio_open(const char *gpio_path);
+int rc_gpio_set(int gpio_fd, __u8 value);
+
+int rc_reset(int gpio_fd);
+
 #define RC_ERROR_NORMAL 0x00
 #define RC_ERROR_M1_OVERCURRENT 0x01
 #define RC_ERROR_M2_OVERCURRENT 0x02
