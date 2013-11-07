@@ -13,6 +13,7 @@ int rc_uart_close(int fd);
 
 int rc_gpio_open(const char *gpio_path);
 int rc_gpio_set(int gpio_fd, __u8 value);
+int rc_gpio_close(int gpio_fd);
 
 int rc_reset(int gpio_fd);
 

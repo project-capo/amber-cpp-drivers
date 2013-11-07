@@ -37,6 +37,7 @@ RoboclawDriver::RoboclawDriver(RoboclawConfiguration *configuration):
 RoboclawDriver::~RoboclawDriver() {
 	LOG4CXX_INFO(_logger, "Stopping driver."); 
 	rc_uart_close(_fd);
+	rc_gpio_close(_gpioFd);
 
 }
 
@@ -95,6 +96,12 @@ void RoboclawDriver::initializeDriver() {
 	if (rc_set_pid_consts_m2(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
 				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
 		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->rear_rc_address << ": error");
+	}
+
+	_gpioFd = rc_gpio_open(_configuration->reset_gpio_path.c_str());
+	if (_gpioFd == -1) {
+		LOG4CXX_FATAL(_logger, "Unable to open reset gpio: " << _configuration->reset_gpio_path);
+		exit(1);
 	}
 
 	driverReady = true;
@@ -182,5 +189,57 @@ void RoboclawDriver::readMainBatteryVoltage(__u16 *voltage) {
 		}
 	} 
 
+}
 
+void RoboclawDriver::readErrorStatus(__u8 *frontErrorStatus, __u8 *rearErrorStatus) {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
+	if (frontErrorStatus != NULL) {
+		if (rc_read_error_status(_fd, _configuration->front_rc_address, frontErrorStatus) < 0) {
+			LOG4CXX_WARN(_logger, "rc_read_error_status, " << (int)_configuration->front_rc_address << ": error");
+		}
+	}
+
+	if (rearErrorStatus != NULL) {
+		if (rc_read_error_status(_fd, _configuration->rear_rc_address, rearErrorStatus) < 0) {
+			LOG4CXX_WARN(_logger, "rc_read_error_status, " << (int)_configuration->rear_rc_address << ": error");
+		}
+	}
+
+}
+
+void RoboclawDriver::readTemperature(__u16 *frontTemperature, __u16 *rearTemperature) {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
+	if (frontTemperature != NULL) {
+		if (rc_read_temperature(_fd, _configuration->front_rc_address, frontTemperature) < 0) {
+			LOG4CXX_WARN(_logger, "rc_read_temperature, " << (int)_configuration->front_rc_address << ": error");
+		}
+	}
+
+	if (rearTemperature != NULL) {
+		if (rc_read_temperature(_fd, _configuration->rear_rc_address, rearTemperature) < 0) {
+			LOG4CXX_WARN(_logger, "rc_read_temperature, " << (int)_configuration->rear_rc_address << ": error");
+		}
+	}
+}
+
+void RoboclawDriver::reset() {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
+	if (rc_reset(_gpioFd) < 0) {
+		LOG4CXX_WARN(_logger, "rc_reset: error");
+	}
 }

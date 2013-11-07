@@ -28,7 +28,10 @@ public:
 	void readCurrentSpeed(MotorsSpeedStruct *mss);
 	void sendMotorsEncoderCommand(MotorsSpeedStruct *mss);
 	void readMainBatteryVoltage(__u16 *voltage);
+	void readErrorStatus(__u8 *frontErrorStatus, __u8 *rearErrorStatus);
+	void readTemperature(__u16 *frontTemperature, __u16 *rearTemperature);
 	void stopMotors();
+	void reset();
 
 	boost::interprocess::interprocess_condition driverIsNotReady;
 	boost::interprocess::interprocess_mutex serialPortMutex;
@@ -40,6 +43,7 @@ private:
 	static log4cxx::LoggerPtr _logger;
 
 	int _fd;
+	int _gpioFd;
 	RoboclawConfiguration *_configuration;
 
 

@@ -19,6 +19,7 @@
 #include "RoboclawDriver.h"
 #include "drivermsg.pb.h"
 #include "roboclaw.pb.h"
+#include "RoboclawLib.h"
 
 class RoboclawController: public MessageHandler {
 public:
@@ -29,14 +30,16 @@ public:
 	void handleClientDiedMsg(int clientID);
 	void operator()();
 
-
-
 private:
 	RoboclawDriver *_roboclawDriver;
 	AmberPipes *_amberPipes;
 
+	bool resetingInProgress;
+
 	RoboclawConfiguration *_configuration;
 	boost::thread *_batteryMonitorThread;
+	boost::thread *_errorMonitorThread;
+	boost::thread *_temperatureMonitorThread;
 
 	static log4cxx::LoggerPtr _logger;
 
@@ -45,7 +48,12 @@ private:
 	void handleCurrentSpeedRequest(int sender, int synNum);
 	void handleMotorsEncoderCommand(amber::roboclaw_proto::MotorsSpeed *motorsCommand);
 	void parseConfigurationFile(const char *filename);
+
 	void batteryMonitor();
+	void errorMonitor();
+	void temperatureMonitor();
+
+	std::string getErorDescription(__u8 errorStatus);
 	int toQpps(int in);
 	int toMmps(int in);
 

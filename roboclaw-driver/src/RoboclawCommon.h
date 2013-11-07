@@ -25,6 +25,9 @@ struct RoboclawConfiguration {
 	std::string uart_port;
 	unsigned int uart_speed;
 
+	std::string reset_gpio_path;
+	__u32 reset_delay;
+
 	__u8 front_rc_address;
 	__u8 rear_rc_address;
 
@@ -37,6 +40,9 @@ struct RoboclawConfiguration {
 	__u32 wheel_radius;
 	
 	__u32 battery_monitor_interval;
+	__u32 error_monitor_interval;
+	__u32 temperature_monitor_interval;
+
 
 };
 

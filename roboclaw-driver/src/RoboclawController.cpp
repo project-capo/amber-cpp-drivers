@@ -26,6 +26,7 @@ LoggerPtr RoboclawController::_logger (Logger::getLogger("Roboclaw.Controller"))
 RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *confFilename) {
 
 	parseConfigurationFile(confFilename);
+	resetingInProgress = false;
 
 	_roboclawDriver = new RoboclawDriver(_configuration);
 	_amberPipes = new AmberPipes(this, pipeInFd, pipeOutFd);
@@ -34,6 +35,14 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 
 	if (_configuration->battery_monitor_interval > 0) {
 		_batteryMonitorThread = new boost::thread(boost::bind(&RoboclawController::batteryMonitor, this));	
+	}
+
+	if (_configuration->error_monitor_interval > 0) {
+		_errorMonitorThread = new boost::thread(boost::bind(&RoboclawController::errorMonitor, this));	
+	}
+
+	if (_configuration->temperature_monitor_interval > 0) {
+		_temperatureMonitorThread = new boost::thread(boost::bind(&RoboclawController::temperatureMonitor, this));	
 	}
 	
 }
@@ -85,12 +94,21 @@ amber::DriverMsg *RoboclawController::buildCurrentSpeedMsg() {
 	roboclaw_proto::MotorsSpeed *currentSpeed = message->MutableExtension(roboclaw_proto::currentSpeed);
 
 	MotorsSpeedStruct mc;
-	_roboclawDriver->readCurrentSpeed(&mc);
 
-	currentSpeed->set_frontleftspeed(toMmps(mc.frontLeftSpeed));
-	currentSpeed->set_frontrightspeed(toMmps(mc.frontRightSpeed));
-	currentSpeed->set_rearleftspeed(toMmps(mc.rearLeftSpeed));
-	currentSpeed->set_rearrightspeed(toMmps(mc.rearRightSpeed));
+	if (!resetingInProgress) {
+		_roboclawDriver->readCurrentSpeed(&mc);
+
+		currentSpeed->set_frontleftspeed(toMmps(mc.frontLeftSpeed));
+		currentSpeed->set_frontrightspeed(toMmps(mc.frontRightSpeed));
+		currentSpeed->set_rearleftspeed(toMmps(mc.rearLeftSpeed));
+		currentSpeed->set_rearrightspeed(toMmps(mc.rearRightSpeed));
+
+	} else {
+		currentSpeed->set_frontleftspeed(0);
+		currentSpeed->set_frontrightspeed(0);
+		currentSpeed->set_rearleftspeed(0);
+		currentSpeed->set_rearrightspeed(0);
+	}
 
 	return message;
 }
@@ -126,7 +144,9 @@ void RoboclawController::handleMotorsEncoderCommand(roboclaw_proto::MotorsSpeed 
 	mc.rearLeftSpeed = toQpps(motorsCommand->rearleftspeed());
 	mc.rearRightSpeed = toQpps(motorsCommand->rearrightspeed());
 
-	_roboclawDriver->sendMotorsEncoderCommand(&mc);
+	if (!resetingInProgress) {
+		_roboclawDriver->sendMotorsEncoderCommand(&mc);
+	}
 }
 
 int RoboclawController::toQpps(int in) {
@@ -147,17 +167,119 @@ int RoboclawController::toMmps(int in) {
 }
 
 void RoboclawController::batteryMonitor() {
-	LOG4CXX_INFO(_logger, "Battery monitor thread started, interval: " << _configuration->battery_monitor_interval);
+	LOG4CXX_INFO(_logger, "Battery monitor thread started, interval: " << _configuration->battery_monitor_interval << "ms");
 
 	__u16 voltage;
 
 	while (1) {
-		boost::this_thread::sleep(boost::posix_time::seconds(_configuration->battery_monitor_interval)); 
-		_roboclawDriver->readMainBatteryVoltage(&voltage);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->battery_monitor_interval)); 
+
+		if (!resetingInProgress) {
+			_roboclawDriver->readMainBatteryVoltage(&voltage);
 		
-		LOG4CXX_INFO(_logger, "Main battery voltage level: " << voltage/10.0 << "V");
+			LOG4CXX_INFO(_logger, "Main battery voltage level: " << voltage/10.0 << "V");
+		}
+		
 	}
 	
+}
+
+void RoboclawController::errorMonitor() {
+	LOG4CXX_INFO(_logger, "Hardware error monitor started, interval: " << _configuration->error_monitor_interval << "ms");
+
+	__u8 frontErrorStatus, rearErrorStatus;
+
+	while (1) {
+		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->error_monitor_interval)); 
+		_roboclawDriver->readErrorStatus(&frontErrorStatus, &rearErrorStatus);
+
+		if (frontErrorStatus != RC_ERROR_NORMAL) {
+			LOG4CXX_WARN(_logger, "Front Roboclaw error: " << getErorDescription(frontErrorStatus)); 
+		}
+
+		if (rearErrorStatus != RC_ERROR_NORMAL) {
+			LOG4CXX_WARN(_logger, "Rear Roboclaw error: " << getErorDescription(rearErrorStatus)); 
+		}
+
+		if (frontErrorStatus == RC_ERROR_M1_OVERCURRENT || frontErrorStatus == RC_ERROR_M2_OVERCURRENT ||
+			rearErrorStatus == RC_ERROR_M1_OVERCURRENT || rearErrorStatus == RC_ERROR_M2_OVERCURRENT) {
+			LOG4CXX_WARN(_logger, "Reseting Roboclaws and waiting " << _configuration->reset_delay << "ms");
+
+			resetingInProgress = true;
+
+			_roboclawDriver->reset();
+			boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->reset_delay)); 
+
+			resetingInProgress = false;
+		}
+	}
+
+}
+
+void RoboclawController::temperatureMonitor() {
+	LOG4CXX_INFO(_logger, "Temperature monitor thread started, interval: " << _configuration->temperature_monitor_interval << "s");
+
+	__u16 frontTemperature, rearTemperature;
+
+	while (1) {
+		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->temperature_monitor_interval)); 
+
+		if (!resetingInProgress) {
+			_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
+		}
+		
+		LOG4CXX_INFO(_logger, "Front temperature: " << frontTemperature/10.0 << "C, " <<
+			"rear temperature: " << rearTemperature/10.0 << "C");
+	}
+	
+}
+
+string RoboclawController::getErorDescription(__u8 errorStatus) {
+
+	string description;
+
+	switch (errorStatus) {
+		case RC_ERROR_NORMAL:
+			description = "no error";
+			break;
+
+		case RC_ERROR_M1_OVERCURRENT:
+			description = "m1 overcurrent";
+			break;
+
+		case RC_ERROR_M2_OVERCURRENT:
+			description = "m2 overcurrent";
+			break;
+
+		case RC_ERROR_ESTOP:
+			description = "emergency stop";
+			break;
+
+		case RC_ERROR_TEMPERATURE:
+			description = "temperature high";
+			break;
+
+		case RC_ERROR_MAIN_BATTERY_HIGH:
+			description = " battery high";
+			break;
+
+		case RC_ERROR_MAIN_BATTERY_LOW:
+			description = "main battery low";
+			break;
+
+		case RC_ERROR_LOGIC_BATTERY_HIGH:
+			description = "logic battery high";
+			break;
+
+		case RC_ERROR_LOGIC_BATTERY_LOW:
+			description = "logic battery low";
+			break;
+
+		default:
+			description = "";
+	}
+
+	return description;
 }
 
 void RoboclawController::parseConfigurationFile(const char *filename) {
@@ -172,6 +294,8 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 	desc.add_options()
 			("roboclaw.uart_port", value<string>(&_configuration->uart_port)->default_value("/dev/ttyO3"))
 			("roboclaw.uart_speed", value<unsigned int>(&_configuration->uart_speed)->default_value(38400))
+			("roboclaw.reset_gpio_path", value<string>(&_configuration->reset_gpio_path)->default_value("/sys/class/gpio/gpio136/value"))
+			("roboclaw.reset_delay", value<unsigned int>(&_configuration->reset_delay)->default_value(260))
 			("roboclaw.front_rc_address", value<unsigned int>(&front_rc_address)->default_value(128))
 			("roboclaw.rear_rc_address", value<unsigned int>(&rear_rc_address)->default_value(129))
 			("roboclaw.motors_max_qpps", value<unsigned int>(&_configuration->motors_max_qpps)->default_value(13800))
@@ -180,7 +304,9 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 			("roboclaw.motors_d_const", value<unsigned int>(&_configuration->motors_d_const)->default_value(16384))
 			("roboclaw.pulses_per_revolution", value<unsigned int>(&_configuration->pulses_per_revolution)->default_value(1865))
 			("roboclaw.wheel_radius", value<unsigned int>(&_configuration->wheel_radius)->default_value(60))
-			("roboclaw.battery_monitor_interval", value<unsigned int>(&_configuration->battery_monitor_interval)->default_value(60));
+			("roboclaw.battery_monitor_interval", value<unsigned int>(&_configuration->battery_monitor_interval)->default_value(0))
+			("roboclaw.error_monitor_interval", value<unsigned int>(&_configuration->error_monitor_interval)->default_value(0))
+			("roboclaw.temperature_monitor_interval", value<unsigned int>(&_configuration->temperature_monitor_interval)->default_value(0));;
 
 
 	variables_map vm;

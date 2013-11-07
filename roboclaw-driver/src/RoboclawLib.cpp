@@ -109,6 +109,10 @@ int rc_gpio_set(int gpio_fd, __u8 value) {
     return res;
 }
 
+int rc_gpio_close(int gpio_fd) {
+    return close(gpio_fd);
+}
+
 int rc_reset(int gpio_fd) {
 
     if (rc_gpio_set(gpio_fd, 0) < 0) {
