@@ -35,6 +35,7 @@ private:
 	AmberPipes *_amberPipes;
 
 	bool resetingInProgress;
+	bool overheated;
 
 	RoboclawConfiguration *_configuration;
 	boost::thread *_batteryMonitorThread;
@@ -48,6 +49,7 @@ private:
 	void handleCurrentSpeedRequest(int sender, int synNum);
 	void handleMotorsEncoderCommand(amber::roboclaw_proto::MotorsSpeed *motorsCommand);
 	void parseConfigurationFile(const char *filename);
+	void resetAndWait();
 
 	void batteryMonitor();
 	void errorMonitor();

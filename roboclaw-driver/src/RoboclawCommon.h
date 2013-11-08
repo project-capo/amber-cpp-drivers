@@ -43,6 +43,9 @@ struct RoboclawConfiguration {
 	__u32 error_monitor_interval;
 	__u32 temperature_monitor_interval;
 
+	__u16 temperature_critical;
+	__u16 temperature_drop;
+
 
 };
 

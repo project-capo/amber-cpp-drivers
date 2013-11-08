@@ -27,6 +27,7 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 
 	parseConfigurationFile(confFilename);
 	resetingInProgress = false;
+	overheated = false;
 
 	_roboclawDriver = new RoboclawDriver(_configuration);
 	_amberPipes = new AmberPipes(this, pipeInFd, pipeOutFd);
@@ -203,14 +204,8 @@ void RoboclawController::errorMonitor() {
 
 		if (frontErrorStatus == RC_ERROR_M1_OVERCURRENT || frontErrorStatus == RC_ERROR_M2_OVERCURRENT ||
 			rearErrorStatus == RC_ERROR_M1_OVERCURRENT || rearErrorStatus == RC_ERROR_M2_OVERCURRENT) {
-			LOG4CXX_WARN(_logger, "Reseting Roboclaws and waiting " << _configuration->reset_delay << "ms");
 
-			resetingInProgress = true;
-
-			_roboclawDriver->reset();
-			boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->reset_delay)); 
-
-			resetingInProgress = false;
+			resetAndWait();
 		}
 	}
 
@@ -226,12 +221,38 @@ void RoboclawController::temperatureMonitor() {
 
 		if (!resetingInProgress) {
 			_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
-		}
-		
-		LOG4CXX_INFO(_logger, "Front temperature: " << frontTemperature/10.0 << "C, " <<
+
+			LOG4CXX_INFO(_logger, "Front temperature: " << frontTemperature/10.0 << "C, " <<
 			"rear temperature: " << rearTemperature/10.0 << "C");
+
+			if (overheated) {
+				if (frontTemperature < _configuration->temperature_drop && rearTemperature < _configuration->temperature_drop) {
+					overheated = false;
+					LOG4CXX_INFO(_logger, "Roboclaw cooled down, reseting");
+					resetAndWait();
+				}
+
+			} else {
+				if (frontTemperature > _configuration->temperature_critical || rearTemperature > _configuration->temperature_critical) {
+					overheated = true;
+					LOG4CXX_WARN(_logger, "Roboclaw overheated, waiting for cool down to " << _configuration->temperature_drop/10.0 << "C");
+				}
+			}
+
+		}
 	}
 	
+}
+
+void RoboclawController::resetAndWait() {
+	LOG4CXX_INFO(_logger, "Reseting Roboclaws and waiting " << _configuration->reset_delay << "ms");
+
+	resetingInProgress = true;
+
+	_roboclawDriver->reset();
+	boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->reset_delay)); 
+
+	resetingInProgress = false;
 }
 
 string RoboclawController::getErorDescription(__u8 errorStatus) {
@@ -306,7 +327,9 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 			("roboclaw.wheel_radius", value<unsigned int>(&_configuration->wheel_radius)->default_value(60))
 			("roboclaw.battery_monitor_interval", value<unsigned int>(&_configuration->battery_monitor_interval)->default_value(0))
 			("roboclaw.error_monitor_interval", value<unsigned int>(&_configuration->error_monitor_interval)->default_value(0))
-			("roboclaw.temperature_monitor_interval", value<unsigned int>(&_configuration->temperature_monitor_interval)->default_value(0));;
+			("roboclaw.temperature_monitor_interval", value<unsigned int>(&_configuration->temperature_monitor_interval)->default_value(0))
+			("roboclaw.temperature_critical", value<__u16>(&_configuration->temperature_critical)->default_value(70))
+			("roboclaw.temperature_drop", value<__u16>(&_configuration->temperature_drop)->default_value(60));
 
 
 	variables_map vm;
