@@ -10,6 +10,7 @@ void read_speed(int fd, __u8 address);
 void read_battery(int fd, __u8 address);
 void read_temperature(int fd, __u8 address);
 void read_error_status(int fd, __u8 address);
+void read_pid_const(int fd, __u8 address);
 
 void read_firmware_version(int fd, __u8 address) {
 	__u8 buf[100];
@@ -120,7 +121,26 @@ void read_error_status(int fd, __u8 address) {
 	}
 }
 
+void read_pid_const(int fd, __u8 address) {
+	__u32 m1_d, m1_p, m1_i, m1_qpps;
+	__u32 m2_d, m2_p, m2_i, m2_qpps;
 
+	printf ("%d: read pid const:\n", address);
+
+	if (rc_read_pid_const_m1(fd, address, &m1_d, &m1_p, &m1_i, &m1_qpps) == -1) {
+		printf("%d: read_pid_const_m1: error.\n", address);
+		return;
+	}
+
+	if (rc_read_pid_const_m2(fd, address, &m2_d, &m2_p, &m2_i, &m2_qpps) == -1) {
+		printf("%d: read_pid_const_m2: error.\n", address);
+		return;
+	}
+
+	printf("%d: m1_d: %d, m1_p: %d, m1_i: %d, m1_qpps: %d\n", address, m1_d, m1_p, m1_i, m1_qpps);
+	printf("%d: m2_d: %d, m2_p: %d, m2_i: %d, m2_qpps: %d\n", address, m2_d, m2_p, m2_i, m2_qpps); 
+}
+	
 
 int main() {
 
@@ -143,6 +163,9 @@ int main() {
 
 	read_error_status(fd, 128);
 	read_error_status(fd, 129);
+
+	read_pid_const(fd, 128);
+	read_pid_const(fd, 129);
 
 	rc_uart_close(fd);
 	return 0;

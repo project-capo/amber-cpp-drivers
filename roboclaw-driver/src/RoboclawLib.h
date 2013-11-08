@@ -156,6 +156,12 @@ int rc_buffered_m2_drive_speed_accel_dist(int fd, __u8 rc_address, __u32 accel, 
 // 46 - Buffered Mix Mode Drive M1 / M2 With Signed Speed, Accel And Distance
 int rc_buffered_drive_speed_accel_dist(int fd, __u8 rc_address, __u32 accel, __s32 speed_m1, __u32 dist_m1, __s32 speed_m2, __u32 dist_m2, __u8 now);
 
+// 55 - Read Motor 1 P, I, D and QPPS Settings
+int rc_read_pid_const_m1(int fd, __u8 rc_address, __u32 *d, __u32 *p, __u32 *i, __u32 *qpps); 
+
+// 56 - Read Motor 2 P, I, D and QPPS Settings
+int rc_read_pid_const_m2(int fd, __u8 rc_address, __u32 *d, __u32 *p, __u32 *i, __u32 *qpps); 
+
 // 82 Read Temperature
 int rc_read_temperature(int fd, __u8 rc_address, __u16* value);
 
@@ -243,5 +249,7 @@ int rc_read_error_status(int fd, __u8 rc_address, __u8* error);
 
 #define READ_TEMPERATURE 82
 #define READ_ERROR_STATUS 90
+#define READ_PID_CONST_M1 55
+#define READ_PID_CONST_M2 56
 
 #endif

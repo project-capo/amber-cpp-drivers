@@ -1179,3 +1179,59 @@ int rc_read_error_status(int fd, __u8 rc_address, __u8* error) {
 
     return 0;
 }
+
+int rc_read_pid_const_m1(int fd, __u8 rc_address, __u32 *d, __u32 *p, __u32 *i, __u32 *qpps) {
+    const ssize_t command_size = 2;
+
+    __u8 buffer[4] = {
+            rc_address,
+            READ_PID_CONST_M1};
+
+    rc_uart_flush_input(fd);
+
+    if (rc_uart_write(fd, command_size, buffer) != command_size) {
+        return -1;
+    }
+
+    const ssize_t reply_size = 17;
+    __u8 in_buffer[reply_size];
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_PID_CONST_M1, in_buffer, reply_size)) {
+        return -1;
+    }
+
+    *p = (in_buffer[0] << 24) | (in_buffer[1] << 16) | (in_buffer[2] << 8) | in_buffer[3];
+    *i = (in_buffer[4] << 24) | (in_buffer[5] << 16) | (in_buffer[6] << 8) | in_buffer[7];
+    *d = (in_buffer[8] << 24) | (in_buffer[9] << 16) | (in_buffer[10] << 8) | in_buffer[11];
+    *qpps = (in_buffer[12] << 24) | (in_buffer[13] << 16) | (in_buffer[14] << 8) | in_buffer[15];
+
+    return 0;
+}
+
+int rc_read_pid_const_m2(int fd, __u8 rc_address, __u32 *d, __u32 *p, __u32 *i, __u32 *qpps) {
+    const ssize_t command_size = 2;
+
+    __u8 buffer[4] = {
+            rc_address,
+            READ_PID_CONST_M2};
+
+    rc_uart_flush_input(fd);
+
+    if (rc_uart_write(fd, command_size, buffer) != command_size) {
+        return -1;
+    }
+
+    const ssize_t reply_size = 17;
+    __u8 in_buffer[reply_size];
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_PID_CONST_M2, in_buffer, reply_size)) {
+        return -1;
+    }
+
+    *p = (in_buffer[0] << 24) | (in_buffer[1] << 16) | (in_buffer[2] << 8) | in_buffer[3];
+    *i = (in_buffer[4] << 24) | (in_buffer[5] << 16) | (in_buffer[6] << 8) | in_buffer[7];
+    *d = (in_buffer[8] << 24) | (in_buffer[9] << 16) | (in_buffer[10] << 8) | in_buffer[11];
+    *qpps = (in_buffer[12] << 24) | (in_buffer[13] << 16) | (in_buffer[14] << 8) | in_buffer[15];
+
+    return 0;
+}
