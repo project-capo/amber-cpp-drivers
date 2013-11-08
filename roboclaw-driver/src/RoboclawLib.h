@@ -168,9 +168,8 @@ int rc_read_temperature(int fd, __u8 rc_address, __u16* value);
 // 90 - Read Error Status
 int rc_read_error_status(int fd, __u8 rc_address, __u8* error);
 
-
-
-
+// 94 - Write Settings to EEPROM
+int rc_write_to_eeprom(int fd, __u8 rc_address);
 
 #define CRC(x) static_cast<__u8>((x) & 0x7F)
 #define BYTE(x, n) static_cast<__u8>((x >> (8 * n)) & 0xFF)
@@ -251,5 +250,6 @@ int rc_read_error_status(int fd, __u8 rc_address, __u8* error);
 #define READ_ERROR_STATUS 90
 #define READ_PID_CONST_M1 55
 #define READ_PID_CONST_M2 56
+#define WRITE_TO_EEPROM 94
 
 #endif
