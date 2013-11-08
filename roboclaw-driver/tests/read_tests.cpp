@@ -20,7 +20,7 @@ void read_firmware_version(int fd, __u8 address) {
 		return;
 	}
 
-	printf("%d: %s\n", address, buf);
+	printf("%d: %s", address, buf);
 }
 
 void read_speed(int fd, __u8 address) {

@@ -21,14 +21,14 @@ void fill_crc(__u8 *buf, int size) {
 	buf[size - 1] = sum & 0x7F;
 }
 
-int check_crc(__u8 rc_address, __u8 command_id, __u8 *buf, int size) {
+bool check_crc(__u8 rc_address, __u8 command_id, __u8 *buf, int size) {
     __u8 sum = (__u8)(rc_address + command_id);
 
     for (int i = 0; i < size - 1; i++) {
         sum = (__u8)(sum + buf[i]);
     }
 
-    return buf[size] == (sum & 0x7F);
+    return buf[size - 1] == (sum & 0x7F);
 }
 
 int rc_uart_open(const char *blockdevice) {
@@ -116,7 +116,7 @@ int rc_gpio_set(int gpio_fd, __u8 value) {
         return -1;
     }
 
-    return res;
+    return 0;
 }
 
 int rc_gpio_close(int gpio_fd) {
@@ -405,20 +405,26 @@ int rc_read_firmware_version(int fd, __u8 rc_address, unsigned char *str) {
 
     ssize_t received;
     int sum = 0;
+    unsigned char *str_t = str;
 
-    while((received = read(fd, str, 1)) > 0) {
+    bool one_more = false;
+    while((received = read(fd, str_t, 1)) > 0) {
     	sum++;
-    	if (*str == 0x00) {
-    		break;
+
+        if (one_more) {
+            break;
+        } else if(*str_t == 0x00) {
+    		one_more = true;
     	}
-    	str++;
+
+    	str_t++;
     }
 
-    if (received == -1) {
+    if (received == -1 || !check_crc(rc_address, READ_FIRMWARE_VERSION, str, sum)) {
         return -1;
     }
 
-    return sum;
+    return sum - 1;
 }
 
 int rc_read_main_battery_voltage_level(int fd, __u8 rc_address, __u16 *value) {
@@ -436,7 +442,8 @@ int rc_read_main_battery_voltage_level(int fd, __u8 rc_address, __u16 *value) {
 
     const ssize_t reply_size = 3;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_MAIN_BATTEY_VOLTAGE_LEVEL, in_buffer, reply_size)) {
     	return -1;
     }
 
@@ -566,7 +573,8 @@ int rc_read_speed_m1(int fd, __u8 rc_address, __u32 *value, __u8 *direction) {
 
     const ssize_t reply_size = 6;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size || 
+        !check_crc(rc_address, READ_SPEED_M1, in_buffer, reply_size)) {
     	return -1;
     }
 
@@ -592,7 +600,8 @@ int rc_read_speed_m2(int fd, __u8 rc_address, __u32 *value, __u8 *direction) {
 
     const ssize_t reply_size = 6;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size || 
+        !check_crc(rc_address, READ_SPEED_M2, in_buffer, reply_size)) {
     	return -1;
     }
 
@@ -1136,7 +1145,8 @@ int rc_read_temperature(int fd, __u8 rc_address, __u16* value) {
 
     const ssize_t reply_size = 3;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_TEMPERATURE, in_buffer, reply_size)) {
         return -1;
     }
 
@@ -1160,7 +1170,8 @@ int rc_read_error_status(int fd, __u8 rc_address, __u8* error) {
 
     const ssize_t reply_size = 2;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_ERROR_STATUS, in_buffer, reply_size)) {
         return -1;
     }
 
