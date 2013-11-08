@@ -25,12 +25,12 @@ public:
 	virtual ~RoboclawDriver();
 
 	void initializeDriver();
-	void readCurrentSpeed(MotorsSpeedStruct *mss);
-	void sendMotorsEncoderCommand(MotorsSpeedStruct *mss);
-	void readMainBatteryVoltage(__u16 *voltage);
-	void readErrorStatus(__u8 *frontErrorStatus, __u8 *rearErrorStatus);
-	void readTemperature(__u16 *frontTemperature, __u16 *rearTemperature);
-	void stopMotors();
+	void readCurrentSpeed(MotorsSpeedStruct *mss) throw(RoboclawSerialException);
+	void sendMotorsEncoderCommand(MotorsSpeedStruct *mss) throw(RoboclawSerialException);
+	void readMainBatteryVoltage(__u16 *voltage) throw(RoboclawSerialException);
+	void readErrorStatus(__u8 *frontErrorStatus, __u8 *rearErrorStatus) throw(RoboclawSerialException);
+	void readTemperature(__u16 *frontTemperature, __u16 *rearTemperature) throw(RoboclawSerialException);
+	void stopMotors() throw(RoboclawSerialException);
 	void reset();
 
 	boost::interprocess::interprocess_condition driverIsNotReady;

@@ -95,22 +95,34 @@ amber::DriverMsg *RoboclawController::buildCurrentSpeedMsg() {
 	roboclaw_proto::MotorsSpeed *currentSpeed = message->MutableExtension(roboclaw_proto::currentSpeed);
 
 	MotorsSpeedStruct mc;
+	bool speedReadSuccess = false;
 
 	if (!resetingInProgress) {
-		_roboclawDriver->readCurrentSpeed(&mc);
+		
+		// repeat reads in case of read errors
+		for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
+			try {
+				_roboclawDriver->readCurrentSpeed(&mc);
+				speedReadSuccess = true;
+				break;
+			} catch (RoboclawSerialException& e) {
+				// do nothing
+			}	
+		}
+	}
 
+	if (speedReadSuccess) {
 		currentSpeed->set_frontleftspeed(toMmps(mc.frontLeftSpeed));
 		currentSpeed->set_frontrightspeed(toMmps(mc.frontRightSpeed));
 		currentSpeed->set_rearleftspeed(toMmps(mc.rearLeftSpeed));
 		currentSpeed->set_rearrightspeed(toMmps(mc.rearRightSpeed));
-
 	} else {
 		currentSpeed->set_frontleftspeed(0);
 		currentSpeed->set_frontrightspeed(0);
 		currentSpeed->set_rearleftspeed(0);
 		currentSpeed->set_rearrightspeed(0);
 	}
-
+			
 	return message;
 }
 
@@ -146,7 +158,12 @@ void RoboclawController::handleMotorsEncoderCommand(roboclaw_proto::MotorsSpeed 
 	mc.rearRightSpeed = toQpps(motorsCommand->rearrightspeed());
 
 	if (!resetingInProgress) {
-		_roboclawDriver->sendMotorsEncoderCommand(&mc);
+
+		try {
+			_roboclawDriver->sendMotorsEncoderCommand(&mc);	
+		} catch (RoboclawSerialException& e) {
+			// do nothing
+		}	
 	}
 }
 
@@ -176,43 +193,75 @@ void RoboclawController::batteryMonitor() {
 		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->battery_monitor_interval)); 
 
 		if (!resetingInProgress) {
-			_roboclawDriver->readMainBatteryVoltage(&voltage);
-		
-			LOG4CXX_INFO(_logger, "Main battery voltage level: " << voltage/10.0 << "V");
-		}
-		
-	}
-	
+			
+			try {
+				_roboclawDriver->readMainBatteryVoltage(&voltage);
+				LOG4CXX_INFO(_logger, "Main battery voltage level: " << voltage/10.0 << "V");
+			} catch (RoboclawSerialException& e) {
+				// do nothing
+			}				
+		}		
+	}	
 }
 
 void RoboclawController::errorMonitor() {
 	LOG4CXX_INFO(_logger, "Hardware error monitor started, interval: " << _configuration->error_monitor_interval << "ms");
 
-	__u8 frontErrorStatus, rearErrorStatus;
+	__u8 frontErrorStatus, rearErrorStatus, frontErrorStatusTmp, rearErrorStatusTmp;
+	bool same_errors;
 
 	while (1) {
 		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->error_monitor_interval)); 
-		_roboclawDriver->readErrorStatus(&frontErrorStatus, &rearErrorStatus);
+		
+		try {
+			_roboclawDriver->readErrorStatus(&frontErrorStatus, &rearErrorStatus);
 
-		if (frontErrorStatus != RC_ERROR_NORMAL) {
-			LOG4CXX_WARN(_logger, "Front Roboclaw error: " << getErorDescription(frontErrorStatus)); 
-		}
+			if (frontErrorStatus != RC_ERROR_NORMAL || rearErrorStatus != RC_ERROR_NORMAL) {
 
-		if (rearErrorStatus != RC_ERROR_NORMAL) {
-			LOG4CXX_WARN(_logger, "Rear Roboclaw error: " << getErorDescription(rearErrorStatus)); 
-		}
+				frontErrorStatusTmp = frontErrorStatus;
+				rearErrorStatusTmp = rearErrorStatus;
 
-		if (frontErrorStatus == RC_ERROR_M1_OVERCURRENT || frontErrorStatus == RC_ERROR_M2_OVERCURRENT ||
-			rearErrorStatus == RC_ERROR_M1_OVERCURRENT || rearErrorStatus == RC_ERROR_M2_OVERCURRENT) {
+				// check again in case of read errors
+				same_errors = true;
 
-			resetAndWait();
-		}
+				for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
+					_roboclawDriver->readErrorStatus(&frontErrorStatus, &rearErrorStatus);
+
+					if (frontErrorStatus != frontErrorStatusTmp || rearErrorStatus != rearErrorStatusTmp) {
+						same_errors = false;
+						break;
+					}
+				}
+
+				// if errors still the same
+				if (same_errors) {
+					if (frontErrorStatus != RC_ERROR_NORMAL) {
+						LOG4CXX_WARN(_logger, "Front Roboclaw error: " << getErorDescription(frontErrorStatus)); 
+					}
+
+					if (rearErrorStatus != RC_ERROR_NORMAL) {
+						LOG4CXX_WARN(_logger, "Rear Roboclaw error: " << getErorDescription(rearErrorStatus)); 
+					}
+
+					if (frontErrorStatus == RC_ERROR_M1_OVERCURRENT || frontErrorStatus == RC_ERROR_M2_OVERCURRENT ||
+						rearErrorStatus == RC_ERROR_M1_OVERCURRENT || rearErrorStatus == RC_ERROR_M2_OVERCURRENT) {
+
+						resetAndWait();
+					}
+				}
+			}
+
+			
+
+		} catch (RoboclawSerialException& e) {
+			// do nothing
+		}		
 	}
 
 }
 
 void RoboclawController::temperatureMonitor() {
-	LOG4CXX_INFO(_logger, "Temperature monitor thread started, interval: " << _configuration->temperature_monitor_interval << "s");
+	LOG4CXX_INFO(_logger, "Temperature monitor thread started, interval: " << _configuration->temperature_monitor_interval << "ms");
 
 	__u16 frontTemperature, rearTemperature;
 
@@ -226,19 +275,49 @@ void RoboclawController::temperatureMonitor() {
 			"rear temperature: " << rearTemperature/10.0 << "C");
 
 			if (overheated) {
+				// if temperature droped down below drop level
 				if (frontTemperature < _configuration->temperature_drop && rearTemperature < _configuration->temperature_drop) {
 					overheated = false;
-					LOG4CXX_INFO(_logger, "Roboclaw cooled down, reseting");
-					resetAndWait();
+
+					// check again in case of read errors
+					for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
+						_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
+
+						if (frontTemperature > _configuration->temperature_drop || rearTemperature > _configuration->temperature_drop) {
+							overheated = true;
+							break;
+						}
+					}
+
+					// if still cool and ok
+					if (!overheated) {
+						LOG4CXX_INFO(_logger, "Roboclaw cooled down, reseting");
+						resetAndWait();
+					}
 				}
 
 			} else {
+				// if temperature above critical
 				if (frontTemperature > _configuration->temperature_critical || rearTemperature > _configuration->temperature_critical) {
+					
 					overheated = true;
-					
-					_roboclawDriver->stopMotors();
-					
-					LOG4CXX_WARN(_logger, "Roboclaw overheated, waiting for cool down to " << _configuration->temperature_drop/10.0 << "C");
+
+					// check again in case of read errors
+					for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
+						_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
+
+						if (frontTemperature < _configuration->temperature_critical && rearTemperature < _configuration->temperature_critical) {
+							overheated = false;
+							break;
+						}
+					}
+
+					// if still overheated
+					if (overheated) {
+						_roboclawDriver->stopMotors();
+
+						LOG4CXX_WARN(_logger, "Roboclaw overheated, waiting for cool down to " << _configuration->temperature_drop/10.0 << "C");
+					}					
 				}
 			}
 
@@ -332,7 +411,8 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 			("roboclaw.error_monitor_interval", value<unsigned int>(&_configuration->error_monitor_interval)->default_value(0))
 			("roboclaw.temperature_monitor_interval", value<unsigned int>(&_configuration->temperature_monitor_interval)->default_value(0))
 			("roboclaw.temperature_critical", value<__u16>(&_configuration->temperature_critical)->default_value(70))
-			("roboclaw.temperature_drop", value<__u16>(&_configuration->temperature_drop)->default_value(60));
+			("roboclaw.temperature_drop", value<__u16>(&_configuration->temperature_drop)->default_value(60))
+			("roboclaw.critical_read_repeats", value<unsigned int>(&_configuration->critical_read_repeats)->default_value(0));
 
 
 	variables_map vm;

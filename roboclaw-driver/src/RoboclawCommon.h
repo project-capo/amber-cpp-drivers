@@ -8,6 +8,7 @@
 #ifndef ROBOCLAWCOMMON_H_
 #define ROBOCLAWCOMMON_H_
 
+#include <exception>
 #include <linux/types.h>
 #include <string>
 
@@ -46,6 +47,11 @@ struct RoboclawConfiguration {
 	__u16 temperature_critical;
 	__u16 temperature_drop;
 
+	__u32 critical_read_repeats;
+
+};
+
+class RoboclawSerialException: public std::exception {
 
 };
 
