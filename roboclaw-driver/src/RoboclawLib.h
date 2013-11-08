@@ -17,6 +17,9 @@ int rc_gpio_close(int gpio_fd);
 
 int rc_reset(int gpio_fd);
 
+void fill_crc(__u8 *buf, int size);
+int check_crc(__u8 rc_address, __u8 command_id, __u8 *buf, int size);
+
 #define RC_ERROR_NORMAL 0x00
 #define RC_ERROR_M1_OVERCURRENT 0x01
 #define RC_ERROR_M2_OVERCURRENT 0x02

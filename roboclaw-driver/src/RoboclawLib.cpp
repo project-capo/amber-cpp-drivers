@@ -11,7 +11,7 @@
 
 #include "RoboclawLib.h"
 
-inline void fill_crc(__u8 buf[], int size) {
+void fill_crc(__u8 *buf, int size) {
 	__u8 sum = 0;
 
 	for (int i = 0; i < size - 1; i++) {
@@ -19,6 +19,16 @@ inline void fill_crc(__u8 buf[], int size) {
 	}
 
 	buf[size - 1] = sum & 0x7F;
+}
+
+int check_crc(__u8 rc_address, __u8 command_id, __u8 *buf, int size) {
+    __u8 sum = (__u8)(rc_address + command_id);
+
+    for (int i = 0; i < size - 1; i++) {
+        sum = (__u8)(sum + buf[i]);
+    }
+
+    return buf[size] == (sum & 0x7F);
 }
 
 int rc_uart_open(const char *blockdevice) {
