@@ -235,6 +235,9 @@ void RoboclawController::temperatureMonitor() {
 			} else {
 				if (frontTemperature > _configuration->temperature_critical || rearTemperature > _configuration->temperature_critical) {
 					overheated = true;
+					
+					_roboclawDriver->stopMotors();
+					
 					LOG4CXX_WARN(_logger, "Roboclaw overheated, waiting for cool down to " << _configuration->temperature_drop/10.0 << "C");
 				}
 			}
