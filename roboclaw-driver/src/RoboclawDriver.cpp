@@ -98,9 +98,24 @@ void RoboclawDriver::initializeDriver() {
 		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->rear_rc_address << ": error");
 	}
 
+	LOG4CXX_INFO(_logger, "Opening reset gpio: " << _configuration->reset_gpio_path);
 	_gpioFd = rc_gpio_open(_configuration->reset_gpio_path.c_str());
 	if (_gpioFd == -1) {
 		LOG4CXX_FATAL(_logger, "Unable to open reset gpio: " << _configuration->reset_gpio_path);
+		exit(1);
+	}
+
+	LOG4CXX_INFO(_logger, "Opening LED1 gpio: " << _configuration->led1_gpio_path);
+	_led1GpioFd = rc_gpio_open(_configuration->led1_gpio_path.c_str());
+	if (_led1GpioFd == -1) {
+		LOG4CXX_FATAL(_logger, "Unable to open LED1 gpio: " << _configuration->led1_gpio_path);
+		exit(1);
+	}
+
+	LOG4CXX_INFO(_logger, "Opening LED2 gpio: " << _configuration->led2_gpio_path);
+	_led2GpioFd = rc_gpio_open(_configuration->led2_gpio_path.c_str());
+	if (_led2GpioFd == -1) {
+		LOG4CXX_FATAL(_logger, "Unable to open LED2 gpio: " << _configuration->led2_gpio_path);
 		exit(1);
 	}
 
@@ -108,7 +123,7 @@ void RoboclawDriver::initializeDriver() {
 	driverIsNotReady.notify_all();
 }
 
-void RoboclawDriver::readCurrentSpeed(MotorsSpeedStruct *mss) {
+void RoboclawDriver::readCurrentSpeed(MotorsSpeedStruct *mss) throw(RoboclawSerialException) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
 	while (!driverReady) {
@@ -139,11 +154,14 @@ void RoboclawDriver::readCurrentSpeed(MotorsSpeedStruct *mss) {
 	mss->rearLeftSpeed = rlDir == 0 ? (int)rlQpps : -(int)rlQpps;
 	mss->rearRightSpeed = rrDir == 0 ? (int)rrQpps : -(int)rrQpps;
 
-	LOG4CXX_DEBUG(_logger, "current_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "current_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
+	}
+
 	return;
 }
 
-void RoboclawDriver::stopMotors() {
+void RoboclawDriver::stopMotors() throw(RoboclawSerialException) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
 	while (!driverReady) {
@@ -156,7 +174,7 @@ void RoboclawDriver::stopMotors() {
 
 }
 
-void RoboclawDriver::sendMotorsEncoderCommand(MotorsSpeedStruct *mss) {
+void RoboclawDriver::sendMotorsEncoderCommand(MotorsSpeedStruct *mss) throw(RoboclawSerialException) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
 	while (!driverReady) {
@@ -164,7 +182,9 @@ void RoboclawDriver::sendMotorsEncoderCommand(MotorsSpeedStruct *mss) {
 	}
 
 	if (mss != NULL) {
-		LOG4CXX_DEBUG(_logger, "rc_drive_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
+		if (_logger->isDebugEnabled()) {
+			LOG4CXX_DEBUG(_logger, "rc_drive_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
+		}
 
 		if (rc_drive_speed(_fd, _configuration->front_rc_address, mss->frontRightSpeed, mss->frontLeftSpeed) < 0) {
 			LOG4CXX_WARN(_logger, "rc_read_drive_speed, " << (int)_configuration->front_rc_address << ": error");
@@ -176,7 +196,7 @@ void RoboclawDriver::sendMotorsEncoderCommand(MotorsSpeedStruct *mss) {
 	}
 }
 
-void RoboclawDriver::readMainBatteryVoltage(__u16 *voltage) {
+void RoboclawDriver::readMainBatteryVoltage(__u16 *voltage) throw(RoboclawSerialException) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
 	while (!driverReady) {
@@ -191,7 +211,7 @@ void RoboclawDriver::readMainBatteryVoltage(__u16 *voltage) {
 
 }
 
-void RoboclawDriver::readErrorStatus(__u8 *frontErrorStatus, __u8 *rearErrorStatus) {
+void RoboclawDriver::readErrorStatus(__u8 *frontErrorStatus, __u8 *rearErrorStatus) throw(RoboclawSerialException) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
 	while (!driverReady) {
@@ -212,7 +232,7 @@ void RoboclawDriver::readErrorStatus(__u8 *frontErrorStatus, __u8 *rearErrorStat
 
 }
 
-void RoboclawDriver::readTemperature(__u16 *frontTemperature, __u16 *rearTemperature) {
+void RoboclawDriver::readTemperature(__u16 *frontTemperature, __u16 *rearTemperature) throw(RoboclawSerialException) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 
 	while (!driverReady) {
@@ -241,5 +261,37 @@ void RoboclawDriver::reset() {
 
 	if (rc_reset(_gpioFd) < 0) {
 		LOG4CXX_WARN(_logger, "rc_reset: error");
+	}
+}
+
+void RoboclawDriver::setLed1(bool state) {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "rc_gpio_set, setting led1: " << state);
+	}
+
+	if (rc_gpio_set(_led1GpioFd, state) < 0) {
+		LOG4CXX_WARN(_logger, "rc_gpio_set, led1: error");
+	}
+}
+
+void RoboclawDriver::setLed2(bool state) {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "rc_gpio_set, setting led2: " << state);	
+	}
+	
+	if (rc_gpio_set(_led2GpioFd, state) < 0) {
+		LOG4CXX_WARN(_logger, "rc_gpio_set, led2: error");
 	}
 }

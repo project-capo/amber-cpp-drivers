@@ -32,6 +32,8 @@ public:
 	void readTemperature(__u16 *frontTemperature, __u16 *rearTemperature) throw(RoboclawSerialException);
 	void stopMotors() throw(RoboclawSerialException);
 	void reset();
+	void setLed1(bool state);
+	void setLed2(bool state);
 
 	boost::interprocess::interprocess_condition driverIsNotReady;
 	boost::interprocess::interprocess_mutex serialPortMutex;
@@ -44,6 +46,9 @@ private:
 
 	int _fd;
 	int _gpioFd;
+	int _led1GpioFd;
+	int _led2GpioFd;
+
 	RoboclawConfiguration *_configuration;
 
 

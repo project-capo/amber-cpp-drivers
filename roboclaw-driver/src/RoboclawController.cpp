@@ -399,6 +399,8 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 			("roboclaw.uart_speed", value<unsigned int>(&_configuration->uart_speed)->default_value(38400))
 			("roboclaw.reset_gpio_path", value<string>(&_configuration->reset_gpio_path)->default_value("/sys/class/gpio/gpio136/value"))
 			("roboclaw.reset_delay", value<unsigned int>(&_configuration->reset_delay)->default_value(260))
+			("roboclaw.led1_gpio_path", value<string>(&_configuration->led1_gpio_path)->default_value("/sys/class/gpio/gpio139/value"))
+			("roboclaw.led2_gpio_path", value<string>(&_configuration->led2_gpio_path)->default_value("/sys/class/gpio/gpio137/value"))			
 			("roboclaw.front_rc_address", value<unsigned int>(&front_rc_address)->default_value(128))
 			("roboclaw.rear_rc_address", value<unsigned int>(&rear_rc_address)->default_value(129))
 			("roboclaw.motors_max_qpps", value<unsigned int>(&_configuration->motors_max_qpps)->default_value(13800))

@@ -7,7 +7,7 @@ CXXFLAGS = -static -pedantic -W -Wall -Wextra -Wshadow -Wformat \
 
 LDFLAGS = -lrt -lpthread -lboost_thread -lprotobuf -llog4cxx -lboost_program_options
 
-EXECUTABLES = read_tests roboclaw_test reset reset_and_go write_to_eeprom
+EXECUTABLES = read_tests roboclaw_test reset reset_and_go write_to_eeprom led_set
 BINDIR = ../bin/
 
 BIN_EXECUTABLES = $(patsubst %, $(BINDIR)%, $(EXECUTABLES))
@@ -32,6 +32,9 @@ $(BINDIR)reset_and_go: reset_and_go.o $(ROBOCLAW_DRIVER)/RoboclawLib.o
 	$(CXX) $^ $(LDFLAGS) -o $@ 
 
 $(BINDIR)write_to_eeprom: write_to_eeprom.o $(ROBOCLAW_DRIVER)/RoboclawLib.o
+	$(CXX) $^ $(LDFLAGS) -o $@ 
+
+$(BINDIR)led_set: led_set.o $(ROBOCLAW_DRIVER)/RoboclawLib.o
 	$(CXX) $^ $(LDFLAGS) -o $@ 
 
 %.o: %.cpp

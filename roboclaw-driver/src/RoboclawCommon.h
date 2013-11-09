@@ -29,6 +29,9 @@ struct RoboclawConfiguration {
 	std::string reset_gpio_path;
 	__u32 reset_delay;
 
+	std::string led1_gpio_path;
+	std::string led2_gpio_path;
+
 	__u8 front_rc_address;
 	__u8 rear_rc_address;
 

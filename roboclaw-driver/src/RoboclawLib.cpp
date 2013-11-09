@@ -102,15 +102,11 @@ int rc_gpio_open(const char *gpio_path) {
     return open(gpio_path, O_WRONLY);
 }
 
-int rc_gpio_set(int gpio_fd, __u8 value) {
+int rc_gpio_set(int gpio_fd, bool state) {
     const char *command;
 
-    if (value == 0) {
-        command = "0";
-    } else {
-        command = "1";
-    }
-
+    command = state ? "1" : "0";
+   
     ssize_t res = write(gpio_fd, command, 1);
     if (res < 0) {
         return -1;
@@ -125,13 +121,13 @@ int rc_gpio_close(int gpio_fd) {
 
 int rc_reset(int gpio_fd) {
 
-    if (rc_gpio_set(gpio_fd, 0) < 0) {
+    if (rc_gpio_set(gpio_fd, false) < 0) {
         return -1;
     }
 
     boost::this_thread::sleep(boost::posix_time::microseconds(500));
     
-    if (rc_gpio_set(gpio_fd, 1) < 0) {
+    if (rc_gpio_set(gpio_fd, true) < 0) {
         return -1;
     }
 

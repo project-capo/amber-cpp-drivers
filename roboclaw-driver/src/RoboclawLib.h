@@ -12,7 +12,7 @@ int rc_uart_flush_input(int fd);
 int rc_uart_close(int fd);
 
 int rc_gpio_open(const char *gpio_path);
-int rc_gpio_set(int gpio_fd, __u8 value);
+int rc_gpio_set(int gpio_fd, bool state);
 int rc_gpio_close(int gpio_fd);
 
 int rc_reset(int gpio_fd);
@@ -173,8 +173,6 @@ int rc_write_to_eeprom(int fd, __u8 rc_address);
 
 #define CRC(x) static_cast<__u8>((x) & 0x7F)
 #define BYTE(x, n) static_cast<__u8>((x >> (8 * n)) & 0xFF)
-
-
 
 /*
 * Standard commands
