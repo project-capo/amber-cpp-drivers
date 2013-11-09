@@ -459,7 +459,8 @@ int rc_read_logic_battery_voltage_level(int fd, __u8 rc_address, __u16 *value) {
 
     const ssize_t reply_size = 3;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+         !check_crc(rc_address, READ_LOGIC_BATTERY_VOLTAGE_LEVEL, in_buffer, reply_size)) {
     	return -1;
     }
 
@@ -519,7 +520,8 @@ int rc_read_encoder_register_m1(int fd, __u8 rc_address, __u32 *value, __u8 *sta
 
     const ssize_t reply_size = 6;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_QUADRATURE_ENCODER_REGISTER_M1, in_buffer, reply_size)) {
     	return -1;
     }
 
@@ -544,7 +546,8 @@ int rc_read_encoder_register_m2(int fd, __u8 rc_address, __u32 *value, __u8 *sta
 
     const ssize_t reply_size = 6;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_QUADRATURE_ENCODER_REGISTER_M2, in_buffer, reply_size)) {
     	return -1;
     }
 
@@ -713,7 +716,8 @@ int rc_read_speed125_m1(int fd, __u8 rc_address, __u32 *value) {
 
 	const ssize_t reply_size = 4;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_CURRENT_SPEED_M1, in_buffer, reply_size)) {
     	return -1;
     }
 
@@ -738,7 +742,8 @@ int rc_read_speed125_m2(int fd, __u8 rc_address, __u32 *value) {
 
 	const ssize_t reply_size = 4;
     __u8 in_buffer[reply_size];
-    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size) {
+    if (rc_uart_read(fd, reply_size, in_buffer) != reply_size ||
+        !check_crc(rc_address, READ_CURRENT_SPEED_M2, in_buffer, reply_size)) {
     	return -1;
     }
 
