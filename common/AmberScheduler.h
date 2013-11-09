@@ -109,8 +109,10 @@ void AmberScheduler<T>::addClient(int clientId, int freq, T *details) {
 	_schedulerMap.insert(std::pair<int, AmberSchedulerEntry<T>* >(clientId, entry));
 	_schedulerQueue.push(entry);
 
-	LOG4CXX_DEBUG(_logger, "Adding client: " << clientId << " with time: " << entry->nextTime.time_of_day().total_milliseconds())
-
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Adding client: " << clientId << " with time: " << entry->nextTime.time_of_day().total_milliseconds())
+	}
+	
 	_noClient.notify_all();
 }
 

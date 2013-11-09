@@ -58,7 +58,7 @@ private:
 	NinedofConfiguration *_configuration;
 	int _fd;
 
-	static log4cxx::LoggerPtr logger;
+	static log4cxx::LoggerPtr _logger;
 
 	void driverLoop();
 	void initializeDriver();

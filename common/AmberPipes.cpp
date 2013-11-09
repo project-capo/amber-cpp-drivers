@@ -90,7 +90,6 @@ void AmberPipes::runProcess() {
 			// If there is data in pipe
 			if (events[n].data.fd == _pipeInFd) {
 				try {
-					//LOG4CXX_DEBUG(_logger, "Reading data from pipe.");
 					newMessageTime = boost::get_system_time();
 
 					readMsgFromPipe();
@@ -135,7 +134,9 @@ ssize_t AmberPipes::readExact(ssize_t len) {
 
 ssize_t AmberPipes::writeExact(ssize_t len) {
 
-	LOG4CXX_DEBUG(_logger, "Writing " << len << " bytes to pipe.");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Writing " << len << " bytes to pipe.");
+	}
 
 	ssize_t out, written = 0;
 
@@ -161,7 +162,9 @@ void AmberPipes::readMsgFromPipe() {
 
 	len = (_pipeInBuffer[0] << 8) | _pipeInBuffer[1];
 
-	LOG4CXX_DEBUG(_logger, "Header length: " << len);
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Header length: " << len);
+	}
 
 	if (readExact(len) != len) {
 		//LOG4CXX_ERROR(_logger, "Cannot read header from pipe.");
@@ -237,7 +240,9 @@ void AmberPipes::writeMsgToPipe(DriverHdr *header, DriverMsg *message) {
 	_pipeOutBuffer[act + 1] = (__u8)(len & 0xff);
 	act += 2;
 
-	LOG4CXX_DEBUG(_logger, "Message is " << len << " bytes long.");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Message is " << len << " bytes long.");
+	}
 
 	// Serialize the message
 	if (!message->SerializeToArray(_pipeOutBuffer + act, BUF_SIZE - act)) {
@@ -267,6 +272,9 @@ void AmberPipes::handlePingMsg(DriverHdr *header, DriverMsg *message) {
 	DriverHdr pongHeader;
 	pongHeader.add_clientids(header->clientids(0));
 
-	LOG4CXX_DEBUG(_logger, "Sending PONG message");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Sending PONG message");
+	}
+
 	writeMsgToPipe(&pongHeader, &pongMessage);
 }

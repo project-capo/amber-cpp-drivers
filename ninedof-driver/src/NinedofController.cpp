@@ -48,21 +48,36 @@ NinedofController::~NinedofController() {
 }
 
 void NinedofController::handleDataRequestMsg(int sender, int synNum, ninedof_proto::DataRequest *dataRequest) {
-	LOG4CXX_DEBUG(_logger, "Got DataRequest message");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Got DataRequest message");
+	}
 
-	LOG4CXX_DEBUG(_logger, "Sending SensorData message");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Sending SensorData message");
+	}
+
 	sendSensorDataMsg(sender, synNum, dataRequest->accel(), dataRequest->gyro(), dataRequest->magnet());
 
 }
 
 void NinedofController::handleSubscribeActionMsg(int sender, ninedof_proto::SubscribeAction *subscribeAction) {
-	LOG4CXX_DEBUG(_logger, "Got SubscribeAction message");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Got SubscribeAction message");
+	}
 
 	if (subscribeAction->freq() == 0) {
-		LOG4CXX_DEBUG(_logger, "Removing client id: " << sender);
+		
+		if (_logger->isDebugEnabled()) {
+			LOG4CXX_DEBUG(_logger, "Removing client id: " << sender);
+		}
+
 		_amberScheduler->removeClient(sender);
 	} else {
-		LOG4CXX_DEBUG(_logger, "Adding new client id: " << sender << ", freq: " << subscribeAction->freq());
+
+		if (_logger->isDebugEnabled()) {
+			LOG4CXX_DEBUG(_logger, "Adding new client id: " << sender << ", freq: " << subscribeAction->freq());
+		}
+
 		_amberScheduler->addClient(sender, subscribeAction->freq(),
 				new NinedofSchedulerEntry(subscribeAction->accel(), subscribeAction->gyro(), subscribeAction->magnet()));
 	}
@@ -136,11 +151,14 @@ DriverMsg *NinedofController::buildSensorDataMsg(bool accel, bool gyro, bool mag
 }
 
 void NinedofController::handleSchedulerEvent(int clientId, NinedofSchedulerEntry *entry) {
-	LOG4CXX_DEBUG(_logger, "Handling scheduler event, clientId: "<< clientId
+	
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Handling scheduler event, clientId: "<< clientId
 			<< ", accel: " << entry->accel
 			<< ", gyro: " << entry->gyro
 			<< ", magnet: " << entry->magnet);
-
+	}
+	
 	sendSensorDataMsg(clientId, 0, entry->accel, entry->gyro, entry->magnet);
 }
 

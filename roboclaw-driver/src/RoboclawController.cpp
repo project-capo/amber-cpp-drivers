@@ -56,7 +56,10 @@ RoboclawController::~RoboclawController() {
 }
 
 void RoboclawController::handleDataMsg(amber::DriverHdr *driverHdr, amber::DriverMsg *driverMsg) {
-	LOG4CXX_DEBUG(_logger, "Message came");
+	
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Message came");
+	}
 
 	// TODO: hack for now
 	int clientId = driverHdr->clientids_size() > 0 ? driverHdr->clientids(0) : 0;
@@ -128,7 +131,9 @@ amber::DriverMsg *RoboclawController::buildCurrentSpeedMsg() {
 
 
 void RoboclawController::sendCurrentSpeedMsg(int receiver, int ackNum) {
-	LOG4CXX_DEBUG(_logger, "Sending currentSpeedRequest message");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Sending currentSpeedRequest message");
+	}
 
 	amber::DriverMsg *currentSpeedMsg = buildCurrentSpeedMsg();
 	currentSpeedMsg->set_acknum(ackNum);
@@ -143,13 +148,18 @@ void RoboclawController::sendCurrentSpeedMsg(int receiver, int ackNum) {
 
 
 void RoboclawController::handleCurrentSpeedRequest(int sender, int synNum) {
-	LOG4CXX_DEBUG(_logger, "Handling currentSpeedRequest message");
+	if (_logger->isDebugEnabled()) {	
+		LOG4CXX_DEBUG(_logger, "Handling currentSpeedRequest message");
+	}
 
 	sendCurrentSpeedMsg(sender, synNum);
 }
 
 void RoboclawController::handleMotorsEncoderCommand(roboclaw_proto::MotorsSpeed *motorsCommand) {
-	LOG4CXX_DEBUG(_logger, "Handling motorsEncoderCommand message");
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "Handling motorsEncoderCommand message");
+	}
+	
 	MotorsSpeedStruct mc;
 
 	mc.frontLeftSpeed = toQpps(motorsCommand->frontleftspeed());
@@ -171,7 +181,9 @@ int RoboclawController::toQpps(int in) {
 	double rps = in / (double)(_configuration->wheel_radius * M_PI * 2);
 	int out = (int)(rps * _configuration->pulses_per_revolution);
 
-	LOG4CXX_DEBUG(_logger, "toOpps: " << in << ", " <<  out);
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "toOpps: " << in << ", " <<  out);
+	}
 
 	return out;
 }
@@ -179,7 +191,9 @@ int RoboclawController::toQpps(int in) {
 int RoboclawController::toMmps(int in) {
 	int out = (int)(in * (int)_configuration->wheel_radius * M_PI * 2 / (double)_configuration->pulses_per_revolution);
 	
-	LOG4CXX_DEBUG(_logger, "toMmps: " << in << ", " <<  out);
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "toMmps: " << in << ", " <<  out);
+	}
 
 	return out;
 }

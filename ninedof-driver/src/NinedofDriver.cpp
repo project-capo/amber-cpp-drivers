@@ -22,7 +22,7 @@ using namespace boost;
 using namespace boost::interprocess;
 using namespace log4cxx;
 
-LoggerPtr NinedofDriver::logger (Logger::getLogger("Ninedof.Driver"));
+LoggerPtr NinedofDriver::_logger (Logger::getLogger("Ninedof.Driver"));
 
 
 NinedofDriver::NinedofDriver(NinedofConfiguration *configuration):
@@ -38,7 +38,7 @@ NinedofDataStruct *NinedofDriver::getDataStruct() {
 }
 
 void NinedofDriver::operator()() {
-	LOG4CXX_INFO(logger, "Driver thread started.");
+	LOG4CXX_INFO(_logger, "Driver thread started.");
 
 	// initialize driver
 	{
@@ -46,7 +46,7 @@ void NinedofDriver::operator()() {
 
 		initializeDriver();
 
-		LOG4CXX_INFO(logger, "Driver process ready");
+		LOG4CXX_INFO(_logger, "Driver process ready");
 		driverReady = true;
 		driverIsNotReady.notify_all();
 	}
@@ -64,16 +64,16 @@ void NinedofDriver::lockUntilDriverReady() {
 void NinedofDriver::initializeDriver() {
 
 #ifdef MOCK
-	LOG4CXX_INFO(logger, "Initializing mock driver.");
+	LOG4CXX_INFO(_logger, "Initializing mock driver.");
 #else
 
 	_fd = i2c_open(_configuration->i2c_port.c_str());
 	if (_fd == -1) {
-		LOG4CXX_FATAL(logger, "Unable to open i2c bus, port: " << _configuration->i2c_port);
+		LOG4CXX_FATAL(_logger, "Unable to open i2c bus, port: " << _configuration->i2c_port);
 		exit(1);
 	}
 
-	LOG4CXX_INFO(logger, "Opened I2C bus.");
+	LOG4CXX_INFO(_logger, "Opened I2C bus.");
 
 	__u8 tmp;
 
@@ -84,14 +84,14 @@ void NinedofDriver::initializeDriver() {
 	/* CTRL_REG1_A: low power disabled, 400Hz update rate, all axes enabled */
 	tmp = 0x97;
 	if(i2c_write(_fd, ACCEL_ADDRESS, ACCEL_CTRL_REG1_A, 1, &tmp) != 1) {
-		LOG4CXX_FATAL(logger, "Unable to write CTRL_REG1A");
+		LOG4CXX_FATAL(_logger, "Unable to write CTRL_REG1A");
 		exit(1);
 	}
 	
 	/* CTRL_REG4_A: scale, high res update mode */
 	tmp = 0x18;
 	if(i2c_write(_fd, ACCEL_ADDRESS, ACCEL_CTRL_REG4_A, 1, &tmp) != 1) {
-		LOG4CXX_FATAL(logger, "Unable to write CTRL_REG4A");
+		LOG4CXX_FATAL(_logger, "Unable to write CTRL_REG4A");
 		exit(1);
 	}
 
@@ -102,21 +102,21 @@ void NinedofDriver::initializeDriver() {
 	/* CRA_REG_M: temp sensor on, update rate set to 220Hz */
 	tmp = 0x9C;
 	if(i2c_write(_fd, MAGNET_ADDRESS, MAGNET_CRA_REG_M, 1, &tmp) != 1) {
-		LOG4CXX_FATAL(logger, "Unable to write CRA_REG_M");
+		LOG4CXX_FATAL(_logger, "Unable to write CRA_REG_M");
 		exit(1);
 	}
 
 	/* CRB_REG_M: gain setting */
 	tmp = 0xE0;
 	if(i2c_write(_fd, MAGNET_ADDRESS, MAGNET_CRB_REG_M, 1, &tmp) != 1) {
-		LOG4CXX_FATAL(logger, "Unable to write CRB_REG_M");
+		LOG4CXX_FATAL(_logger, "Unable to write CRB_REG_M");
 		exit(1);
 	}
 
 	/* MR_REG_M continous-conversion mode */
 	tmp = 0x00;
 	if(i2c_write(_fd, MAGNET_ADDRESS, MAGNET_MR_REG_M, 1, &tmp) != 1) {
-		LOG4CXX_FATAL(logger, "Unable to write MR_REG_M");
+		LOG4CXX_FATAL(_logger, "Unable to write MR_REG_M");
 		exit(1);
 	}
 
@@ -127,14 +127,14 @@ void NinedofDriver::initializeDriver() {
 	/* CTRL_REG1 ODR, bandwidth, power down off, all axes enabled  */
 	tmp = 0xEF;
 	if(i2c_write(_fd, GYRO_ADDRESS, GYRO_CTRL_REG1, 1, &tmp) != 1) {
-		LOG4CXX_FATAL(logger, "Unable to write CTRL_REG1_A");
+		LOG4CXX_FATAL(_logger, "Unable to write CTRL_REG1_A");
 		exit(1);
 	}
 
 	/* CTRL_REG4 ODR, full scale  */
 	tmp = 0x10;
 	if(i2c_write(_fd, GYRO_ADDRESS, GYRO_CTRL_REG4, 1, &tmp) != 1) {
-		LOG4CXX_FATAL(logger, "Unable to write CTRL_REG1_A");
+		LOG4CXX_FATAL(_logger, "Unable to write CTRL_REG1_A");
 		exit(1);
 	}
 
@@ -160,7 +160,9 @@ void NinedofDriver::driverLoop() {
 
 #ifdef MOCK
 
-		LOG4CXX_DEBUG(logger, "Randomizing new data, accel x_axis: " << _dataStruct.accel.x_axis);
+		if (_logger->isDebugEnabled()) {
+			LOG4CXX_DEBUG(_logger, "Randomizing new data, accel x_axis: " << _dataStruct.accel.x_axis);
+		}
 
 		_dataStruct.accel.x_axis = (rand() % 2000) - 1000;
 		_dataStruct.accel.y_axis = (rand() % 2000) - 1000;
@@ -176,10 +178,12 @@ void NinedofDriver::driverLoop() {
 
 #else
 
-		LOG4CXX_DEBUG(logger, "Reading data from 9dof sensor");
+		if (_logger->isDebugEnabled()) {
+			LOG4CXX_DEBUG(_logger, "Reading data from 9dof sensor");
+		}
 
 		if(i2c_read(_fd, ACCEL_ADDRESS, ACCEL_AXES_REG, 6, accel_axes) != 6) {
-			LOG4CXX_WARN(logger, "Unable to read from accel device");
+			LOG4CXX_WARN(_logger, "Unable to read from accel device");
 		} else {
 			_dataStruct.accel.x_axis = (__s16)(accel_axes[1]<<8 | accel_axes[0]);
 			_dataStruct.accel.y_axis = (__s16)(accel_axes[3]<<8 | accel_axes[2]);
@@ -187,7 +191,7 @@ void NinedofDriver::driverLoop() {
 		}
 
 		if(i2c_read(_fd, GYRO_ADDRESS, GYRO_AXES_REG, 6, gyro_axes) != 6) {
-			LOG4CXX_WARN(logger, "Unable to read from gyro device");
+			LOG4CXX_WARN(_logger, "Unable to read from gyro device");
 		} else {
 			_dataStruct.gyro.x_axis = (__s16)(gyro_axes[1]<<8 | gyro_axes[0]);
 			_dataStruct.gyro.y_axis = (__s16)(gyro_axes[3]<<8 | gyro_axes[2]);
@@ -196,7 +200,7 @@ void NinedofDriver::driverLoop() {
 
 
 		if(i2c_read(_fd, MAGNET_ADDRESS, MAGNET_AXES_REG, 6, magnet_axes) != 6) {
-			LOG4CXX_WARN(logger, "Unable to read from magnet device");
+			LOG4CXX_WARN(_logger, "Unable to read from magnet device");
 		} else {
 			_dataStruct.magnet.x_axis = (__s16)(magnet_axes[1]<<8 | magnet_axes[0]);
 			_dataStruct.magnet.y_axis = (__s16)(magnet_axes[3]<<8 | magnet_axes[2]);
