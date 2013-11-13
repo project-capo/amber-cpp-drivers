@@ -275,7 +275,7 @@ void RoboclawDriver::setLed1(bool state) {
 		LOG4CXX_DEBUG(_logger, "rc_gpio_set, setting led1: " << state);
 	}
 
-	if (rc_gpio_set(_led1GpioFd, state) < 0) {
+	if (rc_gpio_set(_led1GpioFd, !state) < 0) {
 		LOG4CXX_WARN(_logger, "rc_gpio_set, led1: error");
 	}
 }
@@ -291,7 +291,7 @@ void RoboclawDriver::setLed2(bool state) {
 		LOG4CXX_DEBUG(_logger, "rc_gpio_set, setting led2: " << state);	
 	}
 	
-	if (rc_gpio_set(_led2GpioFd, state) < 0) {
+	if (rc_gpio_set(_led2GpioFd, !state) < 0) {
 		LOG4CXX_WARN(_logger, "rc_gpio_set, led2: error");
 	}
 }

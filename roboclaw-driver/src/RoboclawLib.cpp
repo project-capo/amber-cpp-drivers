@@ -1238,17 +1238,26 @@ int rc_read_pid_const_m2(int fd, __u8 rc_address, __u32 *d, __u32 *p, __u32 *i, 
 }
 
 int rc_write_to_eeprom(int fd, __u8 rc_address) {
-    const ssize_t command_size = 2;
+    const ssize_t command_size = 3;
 
     __u8 buffer[4] = {
             rc_address,
-            WRITE_TO_EEPROM};
+            WRITE_TO_EEPROM,
+            0x00 // to be filled with CRC
+        };
+
+    fill_crc(buffer, command_size);
 
     rc_uart_flush_input(fd);
 
     if (rc_uart_write(fd, command_size, buffer) != command_size) {
         return -1;
     }
+
+    for (int i  =0; i < command_size; i++) {
+        printf("%x ", buffer[i]);
+    }
+    printf("\n");
 
     const ssize_t reply_size = 1;
     __u8 in_buffer[reply_size];

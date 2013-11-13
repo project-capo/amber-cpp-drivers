@@ -34,8 +34,8 @@ private:
 	RoboclawDriver *_roboclawDriver;
 	AmberPipes *_amberPipes;
 
-	bool resetingInProgress;
-	bool overheated;
+	bool _roboclawDisabled;
+	bool _overheated;
 
 	RoboclawConfiguration *_configuration;
 	boost::thread *_batteryMonitorThread;

@@ -43,11 +43,12 @@ int main(int argc, char* argv[]) {
 
 	if (led_id == 1) {
 		gpio_fd = rc_gpio_open(LED1_GPIO_PATH);
-	} else if (led_id == 1) {
+	} else if (led_id == 2) {
 		gpio_fd = rc_gpio_open(LED2_GPIO_PATH);
 	}
-		
- 	led_set(gpio_fd, state == 1 ? true : false);
+
+			
+ 	led_set(gpio_fd, state == 0 ? true : false);
 
 	return 0;
 }	

@@ -26,8 +26,8 @@ LoggerPtr RoboclawController::_logger (Logger::getLogger("Roboclaw.Controller"))
 RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *confFilename) {
 
 	parseConfigurationFile(confFilename);
-	resetingInProgress = false;
-	overheated = false;
+	_roboclawDisabled = false;
+	_overheated = false;
 
 	_roboclawDriver = new RoboclawDriver(_configuration);
 	_amberPipes = new AmberPipes(this, pipeInFd, pipeOutFd);
@@ -45,12 +45,17 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 	if (_configuration->temperature_monitor_interval > 0) {
 		_temperatureMonitorThread = new boost::thread(boost::bind(&RoboclawController::temperatureMonitor, this));	
 	}
+
+	_roboclawDriver->setLed1(true);
+	_roboclawDriver->setLed2(false);
 	
 }
 
 RoboclawController::~RoboclawController() {
 	LOG4CXX_INFO(_logger, "Stopping controller.");
 	 
+	_roboclawDriver->setLed1(false);
+
 	delete _roboclawDriver;
 	delete _amberPipes;
 }
@@ -60,6 +65,8 @@ void RoboclawController::handleDataMsg(amber::DriverHdr *driverHdr, amber::Drive
 	if (_logger->isDebugEnabled()) {
 		LOG4CXX_DEBUG(_logger, "Message came");
 	}
+
+	_roboclawDriver->setLed1(true);
 
 	// TODO: hack for now
 	int clientId = driverHdr->clientids_size() > 0 ? driverHdr->clientids(0) : 0;
@@ -79,6 +86,8 @@ void RoboclawController::handleDataMsg(amber::DriverHdr *driverHdr, amber::Drive
 	} else if (driverMsg->HasExtension(roboclaw_proto::motorsCommand)) {
 		handleMotorsEncoderCommand(driverMsg->MutableExtension(roboclaw_proto::motorsCommand));
 	}
+
+	_roboclawDriver->setLed1(false);
 }
 
 void RoboclawController::handleClientDiedMsg(int clientID) {
@@ -100,7 +109,7 @@ amber::DriverMsg *RoboclawController::buildCurrentSpeedMsg() {
 	MotorsSpeedStruct mc;
 	bool speedReadSuccess = false;
 
-	if (!resetingInProgress) {
+	if (!_roboclawDisabled) {
 		
 		// repeat reads in case of read errors
 		for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
@@ -167,7 +176,7 @@ void RoboclawController::handleMotorsEncoderCommand(roboclaw_proto::MotorsSpeed 
 	mc.rearLeftSpeed = toQpps(motorsCommand->rearleftspeed());
 	mc.rearRightSpeed = toQpps(motorsCommand->rearrightspeed());
 
-	if (!resetingInProgress) {
+	if (!_roboclawDisabled) {
 
 		try {
 			_roboclawDriver->sendMotorsEncoderCommand(&mc);	
@@ -206,7 +215,7 @@ void RoboclawController::batteryMonitor() {
 	while (1) {
 		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->battery_monitor_interval)); 
 
-		if (!resetingInProgress) {
+		if (!_roboclawDisabled) {
 			
 			try {
 				_roboclawDriver->readMainBatteryVoltage(&voltage);
@@ -261,6 +270,10 @@ void RoboclawController::errorMonitor() {
 						rearErrorStatus == RC_ERROR_M1_OVERCURRENT || rearErrorStatus == RC_ERROR_M2_OVERCURRENT) {
 
 						resetAndWait();
+					} else if (frontErrorStatus == RC_ERROR_MAIN_BATTERY_LOW || rearErrorStatus == RC_ERROR_MAIN_BATTERY_LOW) {
+						_roboclawDriver->setLed2(true);
+
+						_roboclawDisabled = true;
 					}
 				}
 			}
@@ -282,29 +295,29 @@ void RoboclawController::temperatureMonitor() {
 	while (1) {
 		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->temperature_monitor_interval)); 
 
-		if (!resetingInProgress) {
+		if (!_roboclawDisabled) {
 			_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
 
 			LOG4CXX_INFO(_logger, "Front temperature: " << frontTemperature/10.0 << "C, " <<
 			"rear temperature: " << rearTemperature/10.0 << "C");
 
-			if (overheated) {
+			if (_overheated) {
 				// if temperature droped down below drop level
 				if (frontTemperature < _configuration->temperature_drop && rearTemperature < _configuration->temperature_drop) {
-					overheated = false;
+					_overheated = false;
 
 					// check again in case of read errors
 					for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
 						_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
 
 						if (frontTemperature > _configuration->temperature_drop || rearTemperature > _configuration->temperature_drop) {
-							overheated = true;
+							_overheated = true;
 							break;
 						}
 					}
 
 					// if still cool and ok
-					if (!overheated) {
+					if (!_overheated) {
 						LOG4CXX_INFO(_logger, "Roboclaw cooled down, reseting");
 						resetAndWait();
 					}
@@ -314,23 +327,23 @@ void RoboclawController::temperatureMonitor() {
 				// if temperature above critical
 				if (frontTemperature > _configuration->temperature_critical || rearTemperature > _configuration->temperature_critical) {
 					
-					overheated = true;
+					_overheated = true;
 
 					// check again in case of read errors
 					for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
 						_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
 
 						if (frontTemperature < _configuration->temperature_critical && rearTemperature < _configuration->temperature_critical) {
-							overheated = false;
+							_overheated = false;
 							break;
 						}
 					}
 
-					// if still overheated
-					if (overheated) {
+					// if still _overheated
+					if (_overheated) {
 						_roboclawDriver->stopMotors();
 
-						LOG4CXX_WARN(_logger, "Roboclaw overheated, waiting for cool down to " << _configuration->temperature_drop/10.0 << "C");
+						LOG4CXX_WARN(_logger, "Roboclaw _overheated, waiting for cool down to " << _configuration->temperature_drop/10.0 << "C");
 					}					
 				}
 			}
@@ -343,12 +356,12 @@ void RoboclawController::temperatureMonitor() {
 void RoboclawController::resetAndWait() {
 	LOG4CXX_INFO(_logger, "Reseting Roboclaws and waiting " << _configuration->reset_delay << "ms");
 
-	resetingInProgress = true;
+	_roboclawDisabled = true;
 
 	_roboclawDriver->reset();
 	boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->reset_delay)); 
 
-	resetingInProgress = false;
+	_roboclawDisabled = false;
 }
 
 string RoboclawController::getErorDescription(__u8 errorStatus) {
