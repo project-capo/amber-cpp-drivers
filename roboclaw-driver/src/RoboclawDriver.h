@@ -25,6 +25,7 @@ public:
 	virtual ~RoboclawDriver();
 
 	void initializeDriver();
+	void sendEncoderSettings();
 	void readCurrentSpeed(MotorsSpeedStruct *mss) throw(RoboclawSerialException);
 	void sendMotorsEncoderCommand(MotorsSpeedStruct *mss) throw(RoboclawSerialException);
 	void readMainBatteryVoltage(__u16 *voltage) throw(RoboclawSerialException);

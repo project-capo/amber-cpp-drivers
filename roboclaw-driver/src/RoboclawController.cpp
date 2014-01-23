@@ -361,6 +361,8 @@ void RoboclawController::resetAndWait() {
 	_roboclawDriver->reset();
 	boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->reset_delay)); 
 
+	_roboclawDriver->sendEncoderSettings();
+
 	_roboclawDisabled = false;
 }
 

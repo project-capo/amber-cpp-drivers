@@ -38,7 +38,6 @@ RoboclawDriver::~RoboclawDriver() {
 	LOG4CXX_INFO(_logger, "Stopping driver."); 
 	rc_uart_close(_fd);
 	rc_gpio_close(_gpioFd);
-
 }
 
 void RoboclawDriver::initializeDriver() {
@@ -78,25 +77,7 @@ void RoboclawDriver::initializeDriver() {
 			<< ", baud: " << uart_speed);
 	rc_uart_init(_fd, uart_speed);
 
-	// Setting motors constants
-	if (rc_set_pid_consts_m1(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
-			_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << (int)_configuration->front_rc_address << ": error");
-	}
-	if (rc_set_pid_consts_m2(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
-				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->front_rc_address << ": error");
-	}
-
-	if (rc_set_pid_consts_m1(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
-				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << (int)_configuration->rear_rc_address << ": error");
-	}
-
-	if (rc_set_pid_consts_m2(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
-				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
-		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->rear_rc_address << ": error");
-	}
+	sendEncoderSettings();
 
 	LOG4CXX_INFO(_logger, "Opening reset gpio: " << _configuration->reset_gpio_path);
 	_gpioFd = rc_gpio_open(_configuration->reset_gpio_path.c_str());
@@ -159,6 +140,27 @@ void RoboclawDriver::readCurrentSpeed(MotorsSpeedStruct *mss) throw(RoboclawSeri
 	}
 
 	return;
+}
+
+void RoboclawDriver::sendEncoderSettings() {
+	if (rc_set_pid_consts_m1(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
+			_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << (int)_configuration->front_rc_address << ": error");
+	}
+	if (rc_set_pid_consts_m2(_fd, _configuration->front_rc_address, _configuration->motors_d_const,
+				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->front_rc_address << ": error");
+	}
+
+	if (rc_set_pid_consts_m1(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
+				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m1, " << (int)_configuration->rear_rc_address << ": error");
+	}
+
+	if (rc_set_pid_consts_m2(_fd, _configuration->rear_rc_address, _configuration->motors_d_const,
+				_configuration->motors_p_const, _configuration->motors_i_const, _configuration->motors_max_qpps) < 0) {
+		LOG4CXX_WARN(_logger, "rc_set_pid_consts_m2, " << (int)_configuration->rear_rc_address << ": error");
+	}
 }
 
 void RoboclawDriver::stopMotors() throw(RoboclawSerialException) {
