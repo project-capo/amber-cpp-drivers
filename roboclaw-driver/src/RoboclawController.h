@@ -36,11 +36,18 @@ private:
 
 	bool _roboclawDisabled;
 	bool _overheated;
+	bool _batteryLow;
 
 	RoboclawConfiguration *_configuration;
 	boost::thread *_batteryMonitorThread;
 	boost::thread *_errorMonitorThread;
 	boost::thread *_temperatureMonitorThread;
+	boost::thread *_timeoutMonitorThread;
+
+	boost::interprocess::interprocess_mutex _timeoutsMutex;
+	boost::system_time _motorsStopTime;
+	boost::system_time _resetTime;
+	bool _motorsStopTimerEnabled;
 
 	static log4cxx::LoggerPtr _logger;
 
@@ -50,10 +57,12 @@ private:
 	void handleMotorsEncoderCommand(amber::roboclaw_proto::MotorsSpeed *motorsCommand);
 	void parseConfigurationFile(const char *filename);
 	void resetAndWait();
+	void resetTimeouts();
 
 	void batteryMonitor();
 	void errorMonitor();
 	void temperatureMonitor();
+	void timeoutMonitor();
 
 	std::string getErorDescription(__u8 errorStatus);
 	int toQpps(int in);

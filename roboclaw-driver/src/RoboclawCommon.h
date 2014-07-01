@@ -52,6 +52,9 @@ struct RoboclawConfiguration {
 
 	__u32 critical_read_repeats;
 
+	__u32 stop_idle_timeout;
+	__u32 reset_idle_timeout;
+
 };
 
 class RoboclawSerialException: public std::exception {

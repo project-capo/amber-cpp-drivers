@@ -28,11 +28,14 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 	parseConfigurationFile(confFilename);
 	_roboclawDisabled = false;
 	_overheated = false;
+	_batteryLow = false;
 
 	_roboclawDriver = new RoboclawDriver(_configuration);
 	_amberPipes = new AmberPipes(this, pipeInFd, pipeOutFd);
 
 	_roboclawDriver->initializeDriver();
+
+	_timeoutMonitorThread = new boost::thread(boost::bind(&RoboclawController::timeoutMonitor, this));	
 
 	if (_configuration->battery_monitor_interval > 0) {
 		_batteryMonitorThread = new boost::thread(boost::bind(&RoboclawController::batteryMonitor, this));	
@@ -45,7 +48,7 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 	if (_configuration->temperature_monitor_interval > 0) {
 		_temperatureMonitorThread = new boost::thread(boost::bind(&RoboclawController::temperatureMonitor, this));	
 	}
-
+	
 	_roboclawDriver->setLed1(true);
 	_roboclawDriver->setLed2(false);
 	
@@ -165,10 +168,16 @@ void RoboclawController::handleCurrentSpeedRequest(int sender, int synNum) {
 }
 
 void RoboclawController::handleMotorsEncoderCommand(roboclaw_proto::MotorsSpeed *motorsCommand) {
+	if (_batteryLow) {
+		return;
+	}
+
 	if (_logger->isDebugEnabled()) {
 		LOG4CXX_DEBUG(_logger, "Handling motorsEncoderCommand message");
 	}
-	
+
+	resetTimeouts();
+
 	MotorsSpeedStruct mc;
 
 	mc.frontLeftSpeed = toQpps(motorsCommand->frontleftspeed());
@@ -273,7 +282,8 @@ void RoboclawController::errorMonitor() {
 					} else if (frontErrorStatus == RC_ERROR_MAIN_BATTERY_LOW || rearErrorStatus == RC_ERROR_MAIN_BATTERY_LOW) {
 						_roboclawDriver->setLed2(true);
 
-						_roboclawDisabled = true;
+						_batteryLow = true;
+						return;
 					}
 				}
 			}
@@ -294,6 +304,10 @@ void RoboclawController::temperatureMonitor() {
 
 	while (1) {
 		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->temperature_monitor_interval)); 
+
+		if (_batteryLow) {
+			return;
+		}
 
 		if (!_roboclawDisabled) {
 			_roboclawDriver->readTemperature(&frontTemperature, &rearTemperature);
@@ -354,6 +368,10 @@ void RoboclawController::temperatureMonitor() {
 }
 
 void RoboclawController::resetAndWait() {
+	if (_batteryLow) {
+		return;
+	}
+
 	LOG4CXX_INFO(_logger, "Reseting Roboclaws and waiting " << _configuration->reset_delay << "ms");
 
 	_roboclawDisabled = true;
@@ -443,7 +461,9 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 			("roboclaw.temperature_monitor_interval", value<unsigned int>(&_configuration->temperature_monitor_interval)->default_value(0))
 			("roboclaw.temperature_critical", value<__u16>(&_configuration->temperature_critical)->default_value(70))
 			("roboclaw.temperature_drop", value<__u16>(&_configuration->temperature_drop)->default_value(60))
-			("roboclaw.critical_read_repeats", value<unsigned int>(&_configuration->critical_read_repeats)->default_value(0));
+			("roboclaw.critical_read_repeats", value<unsigned int>(&_configuration->critical_read_repeats)->default_value(0))
+			("roboclaw.stop_idle_timeout", value<unsigned int>(&_configuration->stop_idle_timeout)->default_value(1000))
+			("roboclaw.reset_idle_timeout", value<unsigned int>(&_configuration->reset_idle_timeout)->default_value(10000));
 
 
 	variables_map vm;
@@ -460,6 +480,62 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 		exit(1);
 	}
 
+}
+
+void RoboclawController::timeoutMonitor() {
+	LOG4CXX_INFO(_logger, "Timeouts monitor thread started, stop_timeout: " << _configuration->stop_idle_timeout << 
+		"ms, reset_timeout: " << _configuration->reset_idle_timeout << " ms");
+
+	resetTimeouts();
+
+	boost::system_time actTime;
+	bool doStop;
+	bool doReset;
+
+	while(1) {
+		if (_batteryLow) {
+			return;
+		}
+
+		actTime = boost::get_system_time();
+
+		{
+			scoped_lock<interprocess_mutex> lock(_timeoutsMutex);
+
+			doStop = false;
+			if (_motorsStopTimerEnabled && _motorsStopTime <= actTime) {
+				doStop = true;
+				_motorsStopTimerEnabled = false;
+			}
+
+			doReset = false;
+			if (_resetTime <= actTime) {
+				doReset = true;
+				_resetTime = actTime + boost::posix_time::milliseconds(_configuration->reset_idle_timeout);
+			}
+		}
+
+		if (doStop) {
+			_roboclawDriver->stopMotors();
+		}
+
+		if (doReset) {
+			resetAndWait();
+		}
+
+		boost::thread::sleep(actTime + boost::posix_time::milliseconds(100));
+	}
+}
+
+void RoboclawController::resetTimeouts() {
+	scoped_lock<interprocess_mutex> lock(_timeoutsMutex);
+
+	boost::system_time actTime = boost::get_system_time();
+
+	_resetTime = actTime + boost::posix_time::milliseconds(_configuration->reset_idle_timeout);
+	_motorsStopTime = actTime + boost::posix_time::milliseconds(_configuration->stop_idle_timeout);
+
+	_motorsStopTimerEnabled = true;
 }
 
 int main(int argc, char *argv[]) {
