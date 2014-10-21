@@ -1,0 +1,26 @@
+package amber.hitec_proto;
+option java_package = "pl.edu.agh.amber.hitec.proto";
+option java_outer_classname = "HitecProto";
+
+import "drivermsg.proto";
+
+extend amber.DriverMsg {
+    optional SetAngle setAngleCommand = 70;
+    optional SetSameAngle setSameAngleCommand = 71;
+    optional SetDifferentAngles setDifferentAnglesCommand = 72;
+}
+
+message SetAngle {
+    required uint32 servoAddress = 1;
+    required int32 angle = 2;
+}
+
+message SetSameAngle {
+    repeated uint32 servoAddresses = 1 [packed=true];
+    required int32 angle = 2;
+}
+
+message SetDifferentAngles {
+    repeated uint32 servoAddresses = 1 [packed=true];
+    repeated int32 angles = 2 [packed=true];
+}
