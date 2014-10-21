@@ -5,7 +5,7 @@ CXXFLAGS = -static -pedantic -W -Wall -Wextra -Wshadow -Wformat \
 	-Wlogical-op -Wmissing-include-dirs -Wconversion \
 	-Wmissing-declarations -Wno-long-long
 
-LDFLAGS = -lrt -lpthread -lboost_thread -lprotobuf -llog4cxx -lboost_program_options
+LDFLAGS = -lrt -lpthread -lboost_thread -lprotobuf -llog4cxx -lboost_program_options -lboost_system
 
 EXECUTABLES = ninedof_test
 BINDIR = ../bin/
