@@ -5,6 +5,7 @@
 #include "RoboclawLib.h"
 #include <termios.h>
 
+void write_to_eeprom(int, __u8);
 
 void write_to_eeprom(int fd, __u8 address) {
 	printf ("%d: writing to eeprom\n", address);

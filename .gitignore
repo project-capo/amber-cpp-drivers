@@ -17,3 +17,5 @@
 *.pb.h
 
 bin
+
+nbproject/
