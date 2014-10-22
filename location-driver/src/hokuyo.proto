@@ -1,0 +1,15 @@
+package amber.hokuyo_proto;
+option java_package = "pl.edu.agh.amber.hokuyo.proto";
+option java_outer_classname = "HokuyoProto";
+
+import "drivermsg.proto";
+
+extend amber.DriverMsg {
+    optional bool get_single_scan = 44;
+    optional Scan scan = 48;
+}
+
+message Scan {
+    repeated double angles = 1 [packed = true];
+    repeated int32 distances = 2 [packed = true];
+}
