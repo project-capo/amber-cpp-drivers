@@ -5,8 +5,8 @@ option java_outer_classname = "LocationProto";
 import "drivermsg.proto";
 
 extend amber.DriverMsg {
-    optional bool get_location = 30;
-	optional Location currentLocation = 31;
+    optional bool get_location = 60;
+    optional Location currentLocation = 61;
 }
 
 message Location {
@@ -16,5 +16,3 @@ message Location {
     optional double alfa = 4;
     optional double timeStamp = 5;
 }
-
-
