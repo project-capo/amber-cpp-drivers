@@ -54,13 +54,17 @@ public:
 	double maxX;
 		double maxY;
 
-	Particle()
+Particle()
 {
-
+		Alfa = alfaNew = d = MaxRadius = maxX = maxY = MaxY = MaxX = MinX = MinY = rMAX = X = Y = Probability =  0.0;
+		sMarkToDelete = 0;
 }
 
 	Particle(double xMax,double yMax)
 	{
+		Alfa = alfaNew = d = MaxRadius = maxX = maxY = MaxY = MaxX = MinX = MinY = rMAX = X = Y = Probability =  0.0;
+		sMarkToDelete = 0;
+
 		maxX = xMax;
 		maxY = yMax;
 	}
@@ -410,7 +414,7 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 	double c1 = wall->C;
 
 	double a2,b2,c2;
-	double prawie_zero;
+	//double prawie_zero;
 
 	getLine(X2,Y2,alfa,&a2,&b2,&c2);
 
@@ -721,26 +725,30 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 					Probability = 0.0;
 					int iloscScian = box->ContainerWallCount();
 					//double norm;
+
+#if DIAGNOSTIC == 1
 					double tablicaOdleglosci[length];
 					double tablicaKatow[length];
 					double tablicaSkan[length];
 					double tablicaGauss[length];
 					std::string tablicaScien[length];
-					int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
 
 					MazeWall * wall;
+#endif
 
+					int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
 
 					for (int i = 0; i < length; i++)
 					{
 						int test = 0;
 						test++;
 
+#if DIAGNOSTIC == 1
 						tablicaOdleglosci[i] = -1;
 						tablicaKatow[i] = this->Alfa + angleTable[i];
 						tablicaSkan[i] = (((double) scanTable[i]) / 1000);
 						tablicaGauss[i] = -1;
-
+#endif
 						dist = DBL_MAX;
 
 						double dist2;
@@ -775,8 +783,9 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 								#endif
 							}
 
+#if DIAGNOSTIC == 1
 							 wall = &box->ContainerWallTable[j];
-
+#endif
 							//printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, intersection.X,intersection.Y,dist2);
 							//fflush(NULL);
 						}
@@ -788,18 +797,19 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 												double scan = (((double) scanTable[i]) / 1000);
 												gauss =  Gauss2(dist,scan);
 
+#if DIAGNOSTIC == 1
 												tablicaOdleglosci[i] = dist;
 												tablicaKatow[i] = angleTable[i];
 												tablicaSkan[i] = scan;
 												tablicaGauss[i] = gauss;
-
+#endif
 
 												ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
 											sumProbability += gauss;
 						}
 
-						int www;
-						www= 112;
+						//int www;
+				//		www= 112;
 					}
 
 
@@ -887,8 +897,8 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 										sumProbability += gauss;
 					}
 
-					int www;
-					www= 112;
+					//int www;
+					//www= 112;
 				}
 
 
@@ -984,7 +994,7 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 				}
 
 
-			/*	for(int w = 0; w < iloscScian; w++)
+				for(int w = 0; w < iloscScian; w++)
 				{
 					printf("X %f, Y %f\n",(&box->ContainerWallTable[w])->From_X, (&box->ContainerWallTable[w])->From_Y);
 					fflush(NULL);
@@ -1030,7 +1040,7 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 			{
 		for (int i = 0; i < length; i++)
 		{
-			/*alfa2 = tan(angleTable[i]);
+		alfa2 = tan(angleTable[i]);
 			b2 = this->Y - (alfa2 * this->Y);*/
 
 		//	X = (b2 - box->ContainerWall[j].B) / (box->ContainerWall[j].A - alfa2);			
@@ -1062,7 +1072,7 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 				sumProbability +=  Normalize(gauss,0,dist); 
 			}
 			else
-	/*			continue;		
+				continue;
 			}
 		}
 			}

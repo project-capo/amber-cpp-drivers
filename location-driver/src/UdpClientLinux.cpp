@@ -33,7 +33,7 @@ UdpClient::~UdpClient()
 
 char* UdpClient::Receive()
 {
-	n = recvfrom(s, buf, BUF_SIZE, 0, (struct sockaddr *) &server, &len2);
+	n = recvfrom(s, buf, BUF_SIZE1, 0, (struct sockaddr *) &server, &len2);
 
 	return buf;
 }

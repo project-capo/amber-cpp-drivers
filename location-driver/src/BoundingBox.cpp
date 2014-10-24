@@ -2,16 +2,21 @@
 
 MazeWall FindWall(MazeWall* wall,int WallsCount,string id)
 {
+	MazeWall *temp;
 	for (int i = 0; i < WallsCount; i++)
 	{
 		if(wall[i].Id == id)
-			return wall[i]; 
+		{
+			temp = &wall[i];
+			break;
+		}
 	}
+	return (*temp);
 }
 
 int conteins(vector<Room> rooms,string textToFind)
 {
-	for (int i = 0; i < rooms.size(); i++)
+	for (unsigned int i = 0; i < rooms.size(); i++)
 		if(rooms.at(i).SpaceId == textToFind)
 			return i;
 	return -1; // -1 not find

@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define BUF_SIZE 7168
+#define BUF_SIZE1 7168
 #define TIMEOUT_S      2     /* Seconds between retransmits */
 
 class UdpClient
@@ -26,7 +26,7 @@ private:
     struct sockaddr_in server;
     int len;
     socklen_t len2; 
-    char buf[BUF_SIZE];
+    char buf[BUF_SIZE1];
     struct hostent *host;
     int  s, port;
 	
