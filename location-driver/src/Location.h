@@ -61,20 +61,20 @@ private:
 	void InitTablicaCzastekLosowo(Particle *tablica,BoundingBox* bBox,int countBox);
 	Room* GetRoom(Room* bBox,int length, double X,double Y);
 
-	const char* SendParticle(string *diagnostic,Particle *tab,int *size);
+	const char* SendParticle(string *diagnostic,Particle *tab);
 
     static int compareMyType (const void * a, const void * b);
 
-	void UsunWylosujNoweCzastki2(Particle* tablicaCzastek,int length,unsigned int iloscCzastekDoUsuniecia,BoundingBox* bBox,unsigned int BoundingBoxCount);
-	inline int wylosujBB(int fMin, int fMax);
+	void UsunWylosujNoweCzastki2(Particle* tablicaCzastek,unsigned int iloscCzastekDoUsuniecia);
+	inline int wylosujBB(int fMax);
 
 	char* getRobotIPAdress();
 
 	void UsunWylosujNoweCzastki3(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,BoundingBox* bBox,unsigned int BoundingBoxCount);
-	void UsunWylosujNoweCzastki4(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,BoundingBox* bBox,unsigned int BoundingBoxCount);
-	void UsunWylosujNoweCzastki5(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,BoundingBox* bBox,unsigned int BoundingBoxCount);
-	void UsunWylosujNoweCzastki6(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,BoundingBox* bBox,unsigned int BoundingBoxCount);
-	void UsunWylosujNoweCzastki7(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,BoundingBox* bBox,unsigned int BoundingBoxCount,double wheelTrack, double VL, double Vr,double dt);
+	void UsunWylosujNoweCzastki4(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
+	void UsunWylosujNoweCzastki5(Particle* tablicaCzastek,unsigned int length);
+	void UsunWylosujNoweCzastki6(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
+	void UsunWylosujNoweCzastki7(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double wheelTrack, double VL, double Vr,double dt);
 
 	/////// Diagnostic ////////////////
 #if DIAGNOSTIC == 1

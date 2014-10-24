@@ -36,16 +36,21 @@ LocationController::LocationController(int pipeInFd, int pipeOutFd, const char *
 	//char* mapPath = "/home/szsz/git/Lokalizacja/Lokalizacja/Debug/labNowe3.roson";
     //char* mapPath = "/home//panda//Lokalizacja//Lokalizacja//labNowe3.roson";
 
-	const char* mapPath = _configuration->mapPath.c_str();
+	char* mapPath = new char[_configuration->mapPath.length()];
+	strcpy(mapPath,_configuration->mapPath.c_str());
+
 
 	unsigned int numberParticles = _configuration->NumberParticles;
 	double epsilon = _configuration->epsilon;
 	int generation = _configuration->generation;
 	unsigned int ilosc_losowanych_nowych_czastek = _configuration->ilosc_losowanych_nowych_czastek;
 	unsigned int przlieczenie_dla_pomiaru_skanera = _configuration->przlieczenie_dla_pomiaru_skanera;
-	const char* sIPPart = _configuration->sIPPart.c_str();
 
-	lok = new Location((char *) mapPath,numberParticles,epsilon,generation,ilosc_losowanych_nowych_czastek,przlieczenie_dla_pomiaru_skanera,(char *)sIPPart);
+	char* sIPPart = new char[_configuration->sIPPart.length()];
+	strcpy(sIPPart,_configuration->sIPPart.c_str());
+
+
+	lok = new Location(mapPath,numberParticles,epsilon,generation,ilosc_losowanych_nowych_czastek,przlieczenie_dla_pomiaru_skanera,sIPPart);
 
 	locationThread = new boost::thread(boost::bind(&LocationController::locationMathod, this));
 }

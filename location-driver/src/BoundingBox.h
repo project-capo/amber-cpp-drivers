@@ -65,7 +65,7 @@ public :
 	double B;
 	double C;
 
-	static const double dbShift = 100;
+	//static const double dbShift = 100;
 
 	inline double Round(double dbVal)
 	{
@@ -147,3 +147,5 @@ int GetRooms(MazeWall* wall,int WallsCount,MazeSpaces* spaces,int SpacesCount,Ro
 int AssignBoundingBox(Room* rooms,int RoomCount,BoundingBox* & box);
 
 int  parseJasonFile(char *filename,BoundingBox* & bBox,Room* & rooms);
+
+MazeWall FindWall(MazeWall* wall,int WallsCount,string id);
