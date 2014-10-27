@@ -8,11 +8,11 @@ Location::Location(char* mapPath,unsigned int numberParticles,double epsilon,int
 {
 #if DIAGNOSTIC == 1
 	IPPart =  sIPPart;// "192.168.2.101";//"172.29.53.31";//"192.168.56.1";//"192.168.2.102";//"169.254.162.40"; //wizualizacja
-	clientParticle = new UdpClient(IPPart,1234,9000); //wizualizacja
+	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
 	amberUdp = getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
-	clinetAmber = new UdpClient(amberUdp,26233,9000);
+	clinetAmber = new UdpClient(amberUdp,26233);
 
 	srand(10);
 
@@ -444,11 +444,22 @@ void Location::UsunWylosujNoweCzastki7(Particle* ttablicaCzastek,unsigned int le
 }
 
 
-
+/*
 int Location::compareMyType (const void * a, const void * b)
 {
 	if ( (*(Particle*)a).Probability <  (*(Particle*)b).Probability ) return 1;
 	else if ( (*(Particle*)a).Probability == (*(Particle*)b).Probability ) return 0;
+	else return -1;
+}
+*/
+
+int Location::compareMyType (const void * a, const void * b)
+{
+	const Particle* tmp_a = (const Particle *) a;
+	const Particle* tmp_b = (const Particle *) b;
+
+	if (tmp_a->Probability < tmp_b->Probability) return 1;
+	else if(tmp_a->Probability == tmp_b->Probability)return 0;
 	else return -1;
 }
 

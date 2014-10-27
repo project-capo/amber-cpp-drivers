@@ -1,6 +1,6 @@
 #include "UdpClientLinux.h"
 
-UdpClient::UdpClient(char* sIP,unsigned short portNo,unsigned int bufforSize)
+UdpClient::UdpClient(char* sIP,unsigned short portNo)
 {
     len = sizeof(struct sockaddr_in);
     len2 = sizeof(struct sockaddr_in);
@@ -10,7 +10,7 @@ UdpClient::UdpClient(char* sIP,unsigned short portNo,unsigned int bufforSize)
 
     /* initialize socket */
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)  
-	err((char*)"socket");
+	err("socket");
 
     /* initialize server addr */
     memset((char *) &server, 0, sizeof(struct sockaddr_in));
@@ -23,7 +23,7 @@ UdpClient::UdpClient(char* sIP,unsigned short portNo,unsigned int bufforSize)
     tv.tv_usec = 100000;
 
     if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0)
-     	 err((char*)"Error timeout");
+     	 err("Error timeout");
 }
 
 UdpClient::~UdpClient()
@@ -42,11 +42,11 @@ void UdpClient::Send(const char* dgram,int count)
 { 
    /* send message */
    if (sendto(s, dgram, count, 0, (struct sockaddr *) &server, len2) == -1) 
-	err((char*)"sendto()");
+	err("sendto()");
 }
 
-void UdpClient::err(char *s)
+void UdpClient::err(const char *str)
 {
-    perror(s);
+    perror(str);
     exit(1);
 }

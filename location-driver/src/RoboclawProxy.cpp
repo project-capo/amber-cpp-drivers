@@ -23,34 +23,34 @@ amber::DriverHdr  RoboclawProxy::buildHeader()
 	return driverHdrBuilder;
 }
 
-amber::DriverMsg* RoboclawProxy::buildMsg(int synNum)
+amber::DriverMsg* RoboclawProxy::buildMsg(int isynNum)
 {
-		amber::DriverMsg* message = new amber::DriverMsg();
-		message->set_type(amber::DriverMsg::DATA);
+		amber::DriverMsg* msg = new amber::DriverMsg();
+		msg->set_type(amber::DriverMsg::DATA);
 
-		message->SetExtension(amber::roboclaw_proto::currentSpeedRequest,true);
-		message->set_synnum(synNum);
+		msg->SetExtension(amber::roboclaw_proto::currentSpeedRequest,true);
+		msg->set_synnum(isynNum);
 
 	return message;
 }
 
-void RoboclawProxy::buildSendMessage(amber::DriverHdr header, amber::DriverMsg* message)
+void RoboclawProxy::buildSendMessage(amber::DriverHdr header, amber::DriverMsg* msg)
 {
 	int headerLen = header.ByteSize();
-	int messageLen = message->ByteSize();
+	int messageLen = msg->ByteSize();
 	requestScanLength =  2 + headerLen + 2 + messageLen;
 
 	char* output = new char[requestScanLength];
 
-	output[0] = ((headerLen >> 8) & 0xff);
-	output[1] = (headerLen & 0xff);
+	output[0] = (char) ((headerLen >> 8) & 0xff);
+	output[1] = (char) (headerLen & 0xff);
 
 	header.SerializePartialToArray(&output[2],headerLen);
 
-	output[2 + headerLen] = ((messageLen >> 8) & 0xff);
-	output[2 + headerLen + 1] = (messageLen & 0xff);
+	output[2 + headerLen] = (char) ((messageLen >> 8) & 0xff);
+	output[2 + headerLen + 1] = (char) (messageLen & 0xff);
 
-	message->SerializePartialToArray(&output[2 + headerLen + 2],messageLen);
+	msg->SerializePartialToArray(&output[2 + headerLen + 2],messageLen);
 
 	requestScan = output;
 }
@@ -115,20 +115,20 @@ double RoboclawProxy::GetSpeed()
 	return speed;
 }
 
-bool RoboclawProxy::isSpeedOK(int frontLeftSpeed,int frontRightSpeed, int rearLeftSpeed,int rearRightSpeed)
+bool RoboclawProxy::isSpeedOK(int ifrontLeftSpeed,int ifrontRightSpeed, int irearLeftSpeed,int irearRightSpeed)
 {
 	bool result = true;
 
-	if((frontLeftSpeed < (-ROBOT_MAX_SPEED)) || (frontLeftSpeed > (ROBOT_MAX_SPEED)))
+	if((ifrontLeftSpeed < (-ROBOT_MAX_SPEED)) || (ifrontLeftSpeed > (ROBOT_MAX_SPEED)))
 		result = false;
 
-	if((frontRightSpeed < (-ROBOT_MAX_SPEED)) || (frontRightSpeed > (ROBOT_MAX_SPEED)))
+	if((ifrontRightSpeed < (-ROBOT_MAX_SPEED)) || (ifrontRightSpeed > (ROBOT_MAX_SPEED)))
 		result = false;
 
-	if((rearLeftSpeed < (-ROBOT_MAX_SPEED)) || (rearLeftSpeed > (ROBOT_MAX_SPEED)))
+	if((irearLeftSpeed < (-ROBOT_MAX_SPEED)) || (irearLeftSpeed > (ROBOT_MAX_SPEED)))
 		result = false;
 
-	if((rearRightSpeed < (-ROBOT_MAX_SPEED)) || (rearRightSpeed > (ROBOT_MAX_SPEED)))
+	if((irearRightSpeed < (-ROBOT_MAX_SPEED)) || (irearRightSpeed > (ROBOT_MAX_SPEED)))
 		result = false;
 
 	return result;

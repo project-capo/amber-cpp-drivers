@@ -33,10 +33,10 @@ amber::DriverMsg* LocationProxy::buildMsg(int iSynNum)
 	return msg;
 }
 
-void LocationProxy::buildSendMessage(amber::DriverHdr header, amber::DriverMsg* message)
+void LocationProxy::buildSendMessage(amber::DriverHdr header, amber::DriverMsg* msg)
 {
 	int headerLen = header.ByteSize();
-	int messageLen = message->ByteSize();
+	int messageLen = msg->ByteSize();
 	requestLocationLength =  2 + headerLen + 2 + messageLen;
 
 	char* output = new char[requestLocationLength];
@@ -49,7 +49,7 @@ void LocationProxy::buildSendMessage(amber::DriverHdr header, amber::DriverMsg* 
 	output[2 + headerLen] = (char) ((messageLen >> 8) & 0xff);
 	output[2 + headerLen + 1] = (char) (messageLen & 0xff);
 
-	message->SerializePartialToArray(&output[2 + headerLen + 2],messageLen);
+	msg->SerializePartialToArray(&output[2 + headerLen + 2],messageLen);
 
 	requestLocation = output;
 }

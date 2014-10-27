@@ -14,7 +14,7 @@
 class UdpClient
 {
 public:
-UdpClient(char* sIP,unsigned short port,unsigned int bufforSize);
+UdpClient(char* sIP,unsigned short port);
 ~ UdpClient();
 
 char* Receive();
@@ -28,10 +28,11 @@ private:
     socklen_t len2; 
     char buf[BUF_SIZE1];
     struct hostent *host;
-    int  s, port;
+    int  s;
+    unsigned short port;
 	
 
-    void err(char *s);
+    void err(const char *s);
 
 };
 
