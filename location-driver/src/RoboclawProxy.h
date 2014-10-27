@@ -1,5 +1,7 @@
 #include "drivermsg.pb.h"
 #include "roboclaw.pb.h"
+#include <log4cxx/propertyconfigurator.h>
+using namespace log4cxx;
 
 #define ROBOT_MAX_SPEED 5000
 
@@ -7,6 +9,8 @@
 class RoboclawProxy 
 {
 private:
+	LoggerPtr _logger;
+
 	static const int DEVICE_TYPE = 2;
 	static const int DEVICE_ID = 0;
 
@@ -35,7 +39,7 @@ private:
 public:
 
 	double wheelTrack; //rozstaw pomiedzy kolami w [m]
-	RoboclawProxy(UdpClient* client_udp);
+	RoboclawProxy(LoggerPtr logger,UdpClient* client_udp);
 	~RoboclawProxy();
 	
 	int FrontLeftSpeed();

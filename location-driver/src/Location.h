@@ -20,6 +20,9 @@
 #include "Particle.h"
 #include <math.h>
 
+#include <log4cxx/propertyconfigurator.h>
+using namespace log4cxx;
+
 
 #define M_PI 3.14159265358979323846
 
@@ -85,9 +88,10 @@ private:
 	int size;
 	const char* wys;
 #endif
+	LoggerPtr _logger;
 
 public:
-	Location(char* mapPath,unsigned int numberParticles,double epsilon,int generation,unsigned int ilosc_losowanych_nowych_czastek,unsigned int skipScan,char* sIPPart);
+	Location(LoggerPtr _logger,char* mapPath,unsigned int numberParticles,double epsilon,int generation,unsigned int ilosc_losowanych_nowych_czastek,unsigned int skipScan,char* sIPPart);
 	~Location();
 	void RunLocation();
 

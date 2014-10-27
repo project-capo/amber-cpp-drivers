@@ -1,8 +1,12 @@
 #include "UdpClientLinux.h"
 #include "RoboclawProxy.h"
 
-RoboclawProxy::RoboclawProxy(UdpClient *client_udp)
+RoboclawProxy::RoboclawProxy(LoggerPtr logger,UdpClient *client_udp)
 {
+	_logger = logger;
+
+	LOG4CXX_INFO(_logger, "RoboclawProxy");
+
 	udp = client_udp;
 
 	synNum = 100;
@@ -57,6 +61,8 @@ void RoboclawProxy::buildSendMessage(amber::DriverHdr header, amber::DriverMsg* 
 
 RoboclawProxy::~RoboclawProxy()
 {
+	LOG4CXX_INFO(_logger, "~RoboclawProxy");
+
 	delete [] requestScan;
 	delete message;
 }
@@ -83,6 +89,8 @@ int RoboclawProxy::RearRightSpeed()
 	
 double RoboclawProxy::GetSpeed()
 {
+	LOG4CXX_INFO(_logger, "GetSpeed");
+
 	char *packetBytes;
 	double speed;
 	amber::roboclaw_proto::MotorsSpeed* currentSpeed;

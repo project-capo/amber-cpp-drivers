@@ -4,11 +4,15 @@
 #include "hokuyo.pb.h"
 
 #include <stdio.h>
+#include <log4cxx/propertyconfigurator.h>
+using namespace log4cxx;
+
 #define M_PI       3.14159265358979323846
 
 class HokuyoProxy 
 {
 private:
+	LoggerPtr _logger;
 
 	static const int DEVICE_TYPE = 4;
 	static const int DEVICE_ID = 0;
@@ -32,7 +36,7 @@ private:
 
 public:
 
-	HokuyoProxy(UdpClient* client_udp,unsigned int skipScan);
+	HokuyoProxy(LoggerPtr logger,UdpClient* client_udp,unsigned int skipScan);
 	~HokuyoProxy();
 	
 	int ScanLengthAll;

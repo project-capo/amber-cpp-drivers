@@ -5,17 +5,14 @@
  *      Author: szsz
  */
 
-//test szsz & pawel
-
 #include <log4cxx/propertyconfigurator.h>
-
-#include "LocationCommon.h"
-#include "LocationController.h"
-
 #include <boost/program_options.hpp>
 #include <string>
 #include <cmath>
 #include <stdio.h>
+
+#include "LocationCommon.h"
+#include "LocationController.h"
 
 using namespace std;
 using namespace boost;
@@ -28,7 +25,9 @@ LoggerPtr LocationController::_logger(Logger::getLogger("LocationController"));
 
 LocationController::LocationController(int pipeInFd, int pipeOutFd, const char *confFilename)
 {
-    parseConfigurationFile(confFilename);
+	LOG4CXX_INFO(_logger, "LocationController");
+
+	parseConfigurationFile(confFilename);
     
 	_amberPipes = new AmberPipes(this, pipeInFd, pipeOutFd);
 
@@ -50,7 +49,7 @@ LocationController::LocationController(int pipeInFd, int pipeOutFd, const char *
 	strcpy(sIPPart,_configuration->sIPPart.c_str());
 
 
-	lok = new Location(mapPath,numberParticles,epsilon,generation,ilosc_losowanych_nowych_czastek,przlieczenie_dla_pomiaru_skanera,sIPPart);
+	lok = new Location(_logger,mapPath,numberParticles,epsilon,generation,ilosc_losowanych_nowych_czastek,przlieczenie_dla_pomiaru_skanera,sIPPart);
 
 	locationThread = new boost::thread(boost::bind(&LocationController::locationMathod, this));
 }

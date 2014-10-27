@@ -4,8 +4,12 @@
 #define TESTHOKU 0
 
 
-HokuyoProxy::HokuyoProxy(UdpClient *client_udp,unsigned int skipScan)
+HokuyoProxy::HokuyoProxy(LoggerPtr logger,UdpClient *client_udp,unsigned int skipScan)
 {
+	_logger = logger;
+
+	LOG4CXX_INFO(_logger, "HokuyoProxy");
+
 	udp = client_udp;
 
 	synNum = 100;
@@ -65,7 +69,9 @@ HokuyoProxy::HokuyoProxy(UdpClient *client_udp,unsigned int skipScan)
 
 HokuyoProxy::~HokuyoProxy()
 {
-    delete []angles;
+	LOG4CXX_INFO(_logger, "~HokuyoProxy");
+
+	delete []angles;
 	delete [] requestScan;
 	delete []distances;
 	delete message;
@@ -83,7 +89,9 @@ int HokuyoProxy::Distance(int index)
 	
 void HokuyoProxy::GetScan()
 {
-#if TESTHOKU == 0
+	LOG4CXX_INFO(_logger, "GetScan");
+
+	#if TESTHOKU == 0
 
 	char *packetBytes;
 	amber::hokuyo_proto::Scan* tmp_scan;

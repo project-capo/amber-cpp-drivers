@@ -4,8 +4,11 @@
 #define TESTHOKU 0
 
 
-Location::Location(char* mapPath,unsigned int numberParticles,double epsilon,int generation,unsigned int ilosc_losowanych_nowych_czastek,unsigned int skipScan,char* sIPPart)
+Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,double epsilon,int generation,unsigned int ilosc_losowanych_nowych_czastek,unsigned int skipScan,char* sIPPart)
 {
+	_logger = logger;
+	LOG4CXX_INFO(_logger, "Location");
+
 #if DIAGNOSTIC == 1
 	IPPart =  sIPPart;// "192.168.2.101";//"172.29.53.31";//"192.168.56.1";//"192.168.2.102";//"169.254.162.40"; //wizualizacja
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
@@ -13,10 +16,12 @@ Location::Location(char* mapPath,unsigned int numberParticles,double epsilon,int
 
 	amberUdp = getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
+	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
 	srand(10);
 
 	countRoomAndBox = parseJasonFile(mapPath,bBox,rooms);
+	LOG4CXX_INFO(_logger, "After: parseJasonFile");
 
 	/*for(int i = 0; i <rooms[0].ContainerWallCount(); i++)
 	{
@@ -31,9 +36,11 @@ Location::Location(char* mapPath,unsigned int numberParticles,double epsilon,int
 
 	iloscCzastekDoUsuniacia = 0;
 
-	roboClaw = new RoboclawProxy(clinetAmber);
+	roboClaw = new RoboclawProxy(_logger,clinetAmber);
+	LOG4CXX_INFO(_logger, "After: RoboclawProxy()");
 
-	skaner = new HokuyoProxy(clinetAmber,skipScan);
+	skaner = new HokuyoProxy(_logger,clinetAmber,skipScan);
+	LOG4CXX_INFO(_logger, "After: HokuyoProxy()");
 
 	EPSILON = epsilon;
 	GENERATION = generation;
@@ -42,6 +49,8 @@ Location::Location(char* mapPath,unsigned int numberParticles,double epsilon,int
 
 Location::~Location()
 {
+	LOG4CXX_INFO(_logger, "~Location");
+
 	delete clinetAmber;
 	delete tablicaCzastek;
 
@@ -53,7 +62,9 @@ Location::~Location()
 
 void Location::RunLocation()
 {
-//	RozmiescCzastki(bBox,countRoomAndBox,tablicaCzastek,NumberParticles);
+	LOG4CXX_INFO(_logger, "RunLocation");
+
+	//	RozmiescCzastki(bBox,countRoomAndBox,tablicaCzastek,NumberParticles);
 	InitTablicaCzastekLosowo(tablicaCzastek,bBox,countRoomAndBox);
 
 #if DIAGNOSTIC == 1
@@ -257,7 +268,6 @@ Room* Location::GetRoom(Room* bbBox,int length, double X,double Y)
 	return NULL;
 }
 
-
 const char* Location::SendParticle(string *sdiagnostic,Particle *tab)
 {
 	sdiagnostic->clear();
@@ -354,8 +364,6 @@ void Location::UsunWylosujNoweCzastki3(Particle* ttablicaCzastek,unsigned int le
 }
 }
 
-
-
 void Location::UsunWylosujNoweCzastki4(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
 {
 
@@ -376,7 +384,6 @@ void Location::UsunWylosujNoweCzastki4(Particle* ttablicaCzastek,unsigned int le
 
 }
 
-
 void Location::UsunWylosujNoweCzastki5(Particle* ttablicaCzastek,unsigned int length)
 {
 	unsigned int index = length - 1;
@@ -392,7 +399,6 @@ void Location::UsunWylosujNoweCzastki5(Particle* ttablicaCzastek,unsigned int le
 
 
 }
-
 
 void Location::UsunWylosujNoweCzastki6(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
 {
@@ -417,7 +423,6 @@ void Location::UsunWylosujNoweCzastki6(Particle* ttablicaCzastek,unsigned int le
 			ttablicaCzastek[i].Losuj22();
 	}
 }
-
 
 void Location::UsunWylosujNoweCzastki7(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double wheelTrack, double VL, double Vr,double dt)
 {
