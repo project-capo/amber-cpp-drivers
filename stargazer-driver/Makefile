@@ -1,5 +1,4 @@
-DRIVERS = roboclaw-driver ninedof-driver maestro-driver location-driver stargazer-driver
-SUBDIRS = common $(DRIVERS) 
+SUBDIRS = src tests
 
 all: 
 	-for dir in $(SUBDIRS); do (cd $$dir; $(MAKE) ); done
