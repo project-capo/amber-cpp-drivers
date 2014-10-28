@@ -35,7 +35,7 @@ amber::DriverMsg* RoboclawProxy::buildMsg(int isynNum)
 		msg->SetExtension(amber::roboclaw_proto::currentSpeedRequest,true);
 		msg->set_synnum(isynNum);
 
-	return message;
+	return msg;
 }
 
 void RoboclawProxy::buildSendMessage(amber::DriverHdr header, amber::DriverMsg* msg)
