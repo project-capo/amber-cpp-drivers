@@ -18,7 +18,7 @@
 
 #include "StargazerCommon.h"
 #include "StargazerDriver.h"
-#include "uart/uart.h"
+#include "uart.h"
 
 using namespace std;
 using namespace boost;
