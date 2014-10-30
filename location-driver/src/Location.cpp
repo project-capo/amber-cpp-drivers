@@ -168,8 +168,8 @@ void Location::RunLocation()
 		size = diagnostic.size();
 		clientParticle->Send(wys,size);
 
-		printf("Czas:%f[s]\n",deletaTime);
-		fflush(NULL);
+		//printf("Czas:%f[s]\n",deletaTime);
+		//fflush(NULL);
 #endif
 	}
 }
