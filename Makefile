@@ -1,4 +1,4 @@
-DRIVERS = roboclaw-driver ninedof-driver hitec-driver location-driver
+DRIVERS = roboclaw-driver ninedof-driver maestro-driver location-driver
 SUBDIRS = common $(DRIVERS) 
 
 all: 
