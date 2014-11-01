@@ -106,6 +106,7 @@ LOG4CXX_INFO(_logger, "build current location msg");
     currentLocation->set_y(lok->Pos_Y);
     currentLocation->set_p(lok->Prop);
     currentLocation->set_alfa(lok->Pos_Alfa);
+    currentLocation->set_timestamp(lok->timeStamp);
 
     return message;
 }
