@@ -145,7 +145,7 @@ void Location::RunLocation()
 
 		qsort(tablicaCzastek,NumberParticles,sizeof(Particle),compareMyType);
 
-		location_mutex.lock();
+		//location_mutex.lock();
 
 		this->Pos_X = tablicaCzastek[0].X;
 		this->Pos_Y = tablicaCzastek[0].Y;
@@ -153,7 +153,7 @@ void Location::RunLocation()
 		this->Pos_Alfa = tablicaCzastek[0].Alfa;
 		this->timeStamp = (end.tv_sec * 1000 + end.tv_usec/1000.0);
 
-		location_mutex.unlock();
+		//location_mutex.unlock();
 
 #if DIAGNOSTIC == 1
 		SendParticle(&diagnostic,tablicaCzastek);
