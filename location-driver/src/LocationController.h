@@ -12,6 +12,7 @@
 #include <boost/thread.hpp>
 #include <boost/ref.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "AmberScheduler.h"
 #include "AmberPipes.h"
@@ -19,6 +20,7 @@
 #include "location.pb.h"
 #include "Location.h"
 
+boost::mutex location_mutex;
 
 class LocationController: public MessageHandler {
 public:
@@ -28,6 +30,8 @@ public:
 	void handleDataMsg(amber::DriverHdr *driverHdr, amber::DriverMsg *driverMsg);
 	void handleClientDiedMsg(int clientID);
 	void operator()();
+
+
 
 private:
 	AmberPipes *_amberPipes;

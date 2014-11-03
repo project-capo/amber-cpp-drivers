@@ -11,6 +11,7 @@
 #include <cmath>
 #include <stdio.h>
 
+
 #include "LocationCommon.h"
 #include "LocationController.h"
 
@@ -102,11 +103,15 @@ LOG4CXX_INFO(_logger, "build current location msg");
 
     location_proto::Location *currentLocation = message->MutableExtension(location_proto::currentLocation);
 
+    location_mutex.lock();
+
     currentLocation->set_x(lok->Pos_X);
     currentLocation->set_y(lok->Pos_Y);
     currentLocation->set_p(lok->Prop);
     currentLocation->set_alfa(lok->Pos_Alfa);
     currentLocation->set_timestamp(lok->timeStamp);
+
+    location_mutex.unlock();
 
     return message;
 }
