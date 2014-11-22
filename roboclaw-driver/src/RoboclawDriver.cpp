@@ -130,10 +130,16 @@ void RoboclawDriver::readCurrentSpeed(MotorsSpeedStruct *mss) throw(RoboclawSeri
 		LOG4CXX_WARN(_logger, "rc_read_speed_m2, " << (int)_configuration->rear_rc_address << ": error");
 	}
 
-	mss->frontLeftSpeed = flDir == 0 ? (int)flQpps : -(int)flQpps;
+/*	mss->frontLeftSpeed = flDir == 0 ? (int)flQpps : -(int)flQpps;
 	mss->frontRightSpeed = frDir == 0 ? (int)frQpps : -(int)frQpps;
 	mss->rearLeftSpeed = rlDir == 0 ? (int)rlQpps : -(int)rlQpps;
 	mss->rearRightSpeed = rrDir == 0 ? (int)rrQpps : -(int)rrQpps;
+*/
+	//opis do zmiany w historii github
+	mss->frontLeftSpeed = (int)flQpps; 
+	mss->frontRightSpeed = (int)frQpps;
+	mss->rearLeftSpeed = (int)rlQpps;
+	mss->rearRightSpeed = (int)rrQpps;
 
 	if (_logger->isDebugEnabled()) {
 		LOG4CXX_DEBUG(_logger, "current_speed, fl: " << mss->frontLeftSpeed << ", fr: " << mss->frontRightSpeed << ", rl: " << mss->rearLeftSpeed << ", rr: " << mss->rearRightSpeed);
