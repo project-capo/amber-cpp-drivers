@@ -20,7 +20,7 @@ UdpClient::UdpClient(char* sIP,unsigned short portNo)
 
     struct timeval tv;
     tv.tv_sec = TIMEOUT_S;
-    tv.tv_usec = 100000;
+    tv.tv_usec = TIMEOUT_MSS;
 
     if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0)
      	 err("Error timeout");

@@ -18,9 +18,11 @@
 
 #include "BoundingBox.h"
 #include "Particle.h"
+
 #include <math.h>
 
 #include <log4cxx/propertyconfigurator.h>
+#include <boost/thread/mutex.hpp>
 using namespace log4cxx;
 
 
@@ -78,6 +80,11 @@ private:
 	void UsunWylosujNoweCzastki5(Particle* tablicaCzastek,unsigned int length);
 	void UsunWylosujNoweCzastki6(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
 	void UsunWylosujNoweCzastki7(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double wheelTrack, double VL, double Vr,double dt);
+
+	void UsunWylosujNoweCzastki8(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
+	void UsunWylosujNoweCzastki68(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
+
+	void UsunWylosujNoweCzastki68a(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
 
 	/////// Diagnostic ////////////////
 #if DIAGNOSTIC == 1

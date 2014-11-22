@@ -10,7 +10,7 @@ RoboclawProxy::RoboclawProxy(LoggerPtr logger,UdpClient *client_udp)
 	udp = client_udp;
 
 	synNum = 100;
-	wheelTrack = 0.280;
+	wheelTrack = 0.420;//wheelTrack = 0.280;
 
 	amber::DriverHdr hdr = buildHeader();
 	message = buildMsg(synNum);

@@ -14,7 +14,7 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
-	amberUdp = getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
+	amberUdp =  "192.168.2.202";//getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
 	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
@@ -163,7 +163,12 @@ void Location::RunLocation()
 #endif
 
 
-		UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
+//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w promieniu najlepszej czastki bez zmiany kata
+//UsunWylosujNoweCzastki68(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //polacznie metody 6 i 8
+//UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
+//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
+
+		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
 
 #if DIAGNOSTIC == 1
@@ -427,6 +432,88 @@ void Location::UsunWylosujNoweCzastki6(Particle* ttablicaCzastek,unsigned int le
 			ttablicaCzastek[i].Losuj22();
 	}
 }
+
+
+void Location::UsunWylosujNoweCzastki8(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
+{
+	if(iloscCzastekDoUsuniecia != length)
+	{
+
+		for(int i = (length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK); i < length; i++)
+			ttablicaCzastek[i].Losuj22();
+
+		for(int i = 1; i < length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++)
+		{
+			ttablicaCzastek[i].LosujSasiada5(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,ttablicaCzastek[0].Alfa);
+
+		}
+
+
+		/*for(int i = length - iloscCzastekDoUsuniecia; i < length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK;i++ )
+		{
+			for(int j = 0; j < length - iloscCzastekDoUsuniecia; j++)
+			{
+				ttablicaCzastek[i].LosujSasiada5(ttablicaCzastek[j].X,ttablicaCzastek[j].Y,ttablicaCzastek[j].Alfa);
+			}
+		}*/
+	}
+	else if(iloscCzastekDoUsuniecia == length)
+	{
+		for(int i = 1; i < length; i++)
+			ttablicaCzastek[i].Losuj22();
+	}
+}
+
+
+
+void Location::UsunWylosujNoweCzastki68(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
+{
+
+   if(iloscCzastekDoUsuniecia != length)
+	{
+	   unsigned int index = length - 1;
+
+	//nowe czastki
+	for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
+		ttablicaCzastek[index].Losuj22();
+
+	//powielenie
+	for(unsigned int i = 0; i < index; i++,index--)
+		ttablicaCzastek[index].LosujSasiada5(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
+	}
+	else if(iloscCzastekDoUsuniecia == length)
+	{
+		ttablicaCzastek[1].LosujSasiada(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,ttablicaCzastek[0].Alfa);
+
+		for(unsigned int i = 2; i< length; i++)
+			ttablicaCzastek[i].Losuj22();
+	}
+}
+
+void Location::UsunWylosujNoweCzastki68a(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
+{
+
+   if(iloscCzastekDoUsuniecia != length)
+	{
+	   unsigned int index = length - 1;
+
+	//nowe czastki
+	for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
+		ttablicaCzastek[index].Losuj22();
+
+	//powielenie
+	for(unsigned int i = 0; i < index; i++,index--)
+		ttablicaCzastek[index].LosujSasiada6(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
+	}
+	else if(iloscCzastekDoUsuniecia == length)
+	{
+		ttablicaCzastek[1].LosujSasiada(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,ttablicaCzastek[0].Alfa);
+
+		for(unsigned int i = 2; i< length; i++)
+			ttablicaCzastek[i].Losuj22();
+	}
+}
+
 
 void Location::UsunWylosujNoweCzastki7(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double wheelTrack, double VL, double Vr,double dt)
 {

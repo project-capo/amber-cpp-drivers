@@ -10,6 +10,7 @@
 
 #define BUF_SIZE1 7168
 #define TIMEOUT_S      2     /* Seconds between retransmits */
+#define TIMEOUT_MSS    100000     /* Seconds between retransmits */
 
 class UdpClient
 {
