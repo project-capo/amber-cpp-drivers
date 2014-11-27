@@ -86,6 +86,7 @@ private:
 
 	void UsunWylosujNoweCzastki68a(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
 
+	void UsunWylosujNoweCzastki9(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,Room* bbBox,int lengthBBbox);
 	/////// Diagnostic ////////////////
 #if DIAGNOSTIC == 1
 	char* IPPart;

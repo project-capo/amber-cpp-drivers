@@ -464,7 +464,45 @@ void Location::UsunWylosujNoweCzastki8(Particle* ttablicaCzastek,unsigned int le
 	}
 }
 
+void Location::UsunWylosujNoweCzastki9(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,Room* bbBox,int lengthBBbox)
+{
+	int index = 0;
 
+	if(iloscCzastekDoUsuniecia != length)
+	{
+
+		for(int i = (length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK); i < length; i++)
+		{
+			ttablicaCzastek[i].Losuj33(bbBox[index].Box.X_Left_Bottom,bbBox[index].Box.X_Right_Bottom,bbBox[index].Box.Y_Left_Bottom,bbBox[index].Box.Y_Left_Top);
+			index++;
+			index %= lengthBBbox;
+		}
+
+		for(int i = 1; i < length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++)
+		{
+			ttablicaCzastek[i].LosujSasiada5(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,ttablicaCzastek[0].Alfa);
+
+		}
+
+
+		/*for(int i = length - iloscCzastekDoUsuniecia; i < length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK;i++ )
+		{
+			for(int j = 0; j < length - iloscCzastekDoUsuniecia; j++)
+			{
+				ttablicaCzastek[i].LosujSasiada5(ttablicaCzastek[j].X,ttablicaCzastek[j].Y,ttablicaCzastek[j].Alfa);
+			}
+		}*/
+	}
+	else if(iloscCzastekDoUsuniecia == length)
+	{
+ 		for(int i = 1; i < length; i++)
+		{
+			ttablicaCzastek[i].Losuj33(bbBox[index].Box.X_Left_Bottom,bbBox[index].Box.X_Right_Bottom,bbBox[index].Box.Y_Left_Bottom,bbBox[index].Box.Y_Left_Top);
+			index++;
+			index %= lengthBBbox;
+		}
+	}
+}
 
 void Location::UsunWylosujNoweCzastki68(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
 {

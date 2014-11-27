@@ -204,6 +204,15 @@ Particle()
 				sMarkToDelete = 0;
 		}
 
+	inline void Losuj33(double minX,double maxX,double minY,double maxY) //Generuj czastke losowa na mapie
+		{
+				X =  fRand(minX,maxX);
+				Y = fRand(minY,maxY);
+				Alfa =  fRand(0,2 * M_PI);
+				Probability = 0.0;
+				sMarkToDelete = 0;
+		}
+
 	inline void LosujSasiada(double X0,double Y0, double alfa) //Generuj czastke w sasiedztwie innej czastki
 	{
 		double t = fRand(0,2 * M_PI);
