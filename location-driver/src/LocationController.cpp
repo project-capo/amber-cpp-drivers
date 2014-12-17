@@ -163,6 +163,7 @@ void LocationController::handleCurrentLocationRequest(int sender, int synNum)
 
 void LocationController::handleCurrentUploadMapRequest(std::string sMap)
 {
+	LOG4CXX_INFO(_logger, "handleCurrentUploadMapRequest " << sMap);
 	printf("%s\n",sMap.c_str());
 }
 
