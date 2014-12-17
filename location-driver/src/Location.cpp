@@ -45,6 +45,8 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	EPSILON = epsilon;
 	GENERATION = generation;
 	ILOSC_LOSOWANYCH_NOWYCH_CZASTEK = ilosc_losowanych_nowych_czastek;
+
+	work = true;
 }
 
 Location::~Location()
@@ -63,6 +65,14 @@ Location::~Location()
 void Location::RunLocation()
 {
 	LOG4CXX_INFO(_logger, "RunLocation");
+
+/*
+	string selectedRooms[] = {"Space689","Space1384","Space762"};
+	string selectedRooms[] = {"Space2310","Space2337","Space2228"};
+	int countSelectedRooms = 3;
+
+	countRoomAndBox = GetSelectedRooms(rooms,countRoomAndBox,selectedRooms,countSelectedRooms);
+*/
 
 	//	RozmiescCzastki(bBox,countRoomAndBox,tablicaCzastek,NumberParticles);
 	InitTablicaCzastekLosowo(tablicaCzastek,bBox,countRoomAndBox);
@@ -85,7 +95,7 @@ void Location::RunLocation()
 	clientParticle->Send(wys,size);
 #endif
 
-	while(true)
+	while(work)
 	{
 		gettimeofday(&end, NULL);
 		deletaTime = ((end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec)/1000.0) / 1000;
@@ -275,6 +285,26 @@ Room* Location::GetRoom(Room* bbBox,int length, double X,double Y)
 			return &(bbBox[i]);
 	}
 	return NULL;
+}
+
+int Location::GetSelectedRooms(Room* & bbBox,int length,string selectedRooms[],int selectedRoomsCount)
+{
+	Room* tmp = new Room[selectedRoomsCount];
+
+	for(int i = 0; i < selectedRoomsCount; i++)
+	{
+		for(int j = 0; j < length; j++)
+		{
+			if(bbBox[j].SpaceId == selectedRooms[i])
+			{
+				tmp[i] = bbBox[j];
+				break;
+			}
+		}
+	}
+
+	bbBox = tmp;
+	return selectedRoomsCount;
 }
 
 const char* Location::SendParticle(string *sdiagnostic,Particle *tab)
@@ -577,6 +607,10 @@ void Location::UsunWylosujNoweCzastki7(Particle* ttablicaCzastek,unsigned int le
 	}
 }
 
+void Location::StopLocation()
+{
+	work = false;
+}
 
 /*
 int Location::compareMyType (const void * a, const void * b)
