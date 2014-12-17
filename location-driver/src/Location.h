@@ -62,6 +62,8 @@ private:
 	int GENERATION;
 	unsigned int ILOSC_LOSOWANYCH_NOWYCH_CZASTEK;
 
+	bool work;
+
 	void RozmiescCzastki(BoundingBox* bBox,unsigned int BoundingBoxCount,Particle* tablicaCzastek,unsigned int ParticleCount);
 	void InitTablicaCzastekLosowo(Particle *tablica,BoundingBox* bBox,int countBox);
 	Room* GetRoom(Room* bBox,int length, double X,double Y);
@@ -88,6 +90,9 @@ private:
 
 	void UsunWylosujNoweCzastki9(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,Room* bbBox,int lengthBBbox);
 	/////// Diagnostic ////////////////
+
+
+	int GetSelectedRooms(Room* & bbBox,int length,string selectedRooms[],int selectedRoomsCount);
 #if DIAGNOSTIC == 1
 	char* IPPart;
 	UdpClient *clientParticle;
@@ -102,6 +107,7 @@ public:
 	Location(LoggerPtr _logger,char* mapPath,unsigned int numberParticles,double epsilon,int generation,unsigned int ilosc_losowanych_nowych_czastek,unsigned int skipScan,char* sIPPart);
 	~Location();
 	void RunLocation();
+	void StopLocation();
 
 	double Pos_X;
 	double Pos_Y;
