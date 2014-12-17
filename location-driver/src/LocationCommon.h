@@ -23,6 +23,7 @@ struct LocationConfiguration {
 	double RandomWalkMaxDistance;
 	double StandardDeviation;
 	std::string sIPPart;
+	std::string uploadMapPath;
 
 /*	std::string uart_port;
 	unsigned int uart_speed;
