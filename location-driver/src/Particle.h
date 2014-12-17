@@ -892,7 +892,12 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 						if(dist > 0)
 						{
 												double scan = (((double) scanTable[i]) / 1000);
-												gauss =  Gauss2(dist,scan);
+
+
+												if((scan < 0.05f) && (dist > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
+													gauss =  Gauss2(scan,scan);
+												else
+													gauss =  Gauss2(dist,scan);
 
 #if DIAGNOSTIC == 1
 												tablicaOdleglosci[i] = dist;
