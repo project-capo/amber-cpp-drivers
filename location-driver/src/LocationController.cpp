@@ -174,6 +174,7 @@ void LocationController::parseConfigurationFile(const char *filename) {
 	// unsigned int front_rc_address;
 	//unsigned int rear_rc_address;
 
+
     options_description desc("Location options");
     desc.add_options()
             ("location.mapPath", value<string>(&_configuration->mapPath)->default_value("."))

@@ -57,7 +57,9 @@ private:
 	Location *lok;
 	void initLocation();
 	void initLocation(char* mapPath);
+
 	void handleCurrentUploadMapRequest(std::string sMap);
+
 };
 
 
