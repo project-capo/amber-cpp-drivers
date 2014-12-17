@@ -29,11 +29,11 @@ amber::DriverHdr  RoboclawProxy::buildHeader()
 
 amber::DriverMsg* RoboclawProxy::buildMsg(int isynNum)
 {
-		amber::DriverMsg* msg = new amber::DriverMsg();
-		msg->set_type(amber::DriverMsg::DATA);
+	amber::DriverMsg* msg = new amber::DriverMsg();
+	msg->set_type(amber::DriverMsg::DATA);
 
-		msg->SetExtension(amber::roboclaw_proto::currentSpeedRequest,true);
-		msg->set_synnum(isynNum);
+	msg->SetExtension(amber::roboclaw_proto::currentSpeedRequest,true);
+	msg->set_synnum(isynNum);
 
 	return msg;
 }
@@ -86,39 +86,59 @@ int RoboclawProxy::RearRightSpeed()
 {
 	return rearRightSpeed;
 }
-	
+
 double RoboclawProxy::GetSpeed()
 {
 	LOG4CXX_INFO(_logger, "GetSpeed");
 
+	bool isException;
 	char *packetBytes;
 	double speed;
 	amber::roboclaw_proto::MotorsSpeed* currentSpeed;
 
 	do
 	{
-		do
+		try
 		{
-			udp->Send(requestScan,requestScanLength);
-			packetBytes = udp->Receive();
+			isException = false;
+
+			do
+			{
+				do
+				{
+					udp->Send(requestScan,requestScanLength);
+					packetBytes = udp->Receive();
+				}
+				while(udp->n < 0);
+
+				currentSpeed = motorsSpeedRequest(packetBytes);
+
+				frontLeftSpeed =   currentSpeed->frontleftspeed();
+				frontRightSpeed =  currentSpeed->frontrightspeed();
+				rearLeftSpeed = currentSpeed->rearleftspeed();
+				rearRightSpeed = currentSpeed->rearrightspeed();
+
+			}
+			while(!isSpeedOK(frontLeftSpeed,frontRightSpeed, rearLeftSpeed, rearRightSpeed));
+
+			Vr = (double) (frontRightSpeed + rearRightSpeed) / 2000;
+			Vl = (double) (frontLeftSpeed + rearLeftSpeed) / 2000;
+
+			speed = ((frontLeftSpeed + frontRightSpeed + rearLeftSpeed + rearRightSpeed) / 4);
+			speed = (speed / 1000);
 		}
-		while(udp->n < 0);
-	
-	currentSpeed = motorsSpeedRequest(packetBytes);
-	
-	frontLeftSpeed =   currentSpeed->frontleftspeed(); 
-	frontRightSpeed =  currentSpeed->frontrightspeed();
-	rearLeftSpeed = currentSpeed->rearleftspeed();
-	rearRightSpeed = currentSpeed->rearrightspeed();
-
+		catch(std::exception& e)
+		{
+			LOG4CXX_INFO(_logger, "GetScan Error" << e.what());
+			isException = true;
+		}
+		catch(...)
+		{
+			LOG4CXX_INFO(_logger, "GetScan Error Unknown");
+			isException = true;
+		}
 	}
-	while(!isSpeedOK(frontLeftSpeed,frontRightSpeed, rearLeftSpeed, rearRightSpeed));
-
-	Vr = (double) (frontRightSpeed + rearRightSpeed) / 2000;
-	Vl = (double) (frontLeftSpeed + rearLeftSpeed) / 2000;
-
-	speed = ((frontLeftSpeed + frontRightSpeed + rearLeftSpeed + rearRightSpeed) / 4);
-	speed = (speed / 1000);
+	while(isException);
 
 	return speed;
 }
@@ -158,5 +178,5 @@ double RoboclawProxy::GetAngle(double time)
 	double tmpRight = (double) (frontRightSpeed +  rearRightSpeed);
 	double tmpLeftS = (double)(frontLeftSpeed + rearLeftSpeed);
 
-return ((((tmpRight) / 2) - ((tmpLeftS) / 2)) * time) / wheelTrack;
+	return ((((tmpRight) / 2) - ((tmpLeftS) / 2)) * time) / wheelTrack;
 }

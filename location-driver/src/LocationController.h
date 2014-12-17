@@ -55,6 +55,8 @@ private:
 	void locationMathod();
 
 	Location *lok;
+	void initLocation();
+	void initLocation(char* mapPath);
 
 };
 
