@@ -10,6 +10,8 @@
 #include <string>
 #include <cmath>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 
 
 #include "LocationCommon.h"
@@ -44,6 +46,8 @@ void LocationController::initLocation()
 	strcpy(mapPath,_configuration->mapPath.c_str());
 
 	initLocation(mapPath);
+
+	delete mapPath;
 }
 
 void LocationController::initLocation(char* mapPath)
@@ -99,7 +103,38 @@ void LocationController::handleDataMsg(amber::DriverHdr *driverHdr, amber::Drive
     	 }
     	 else
     	 {
-    		 ::std::string ss = driverMsg->GetExtension(location_proto::upload_map);
+    		 try
+    		 {
+    			 ::std::string map = driverMsg->GetExtension(location_proto::upload_map);
+    			 saveToFile(map,_configuration->uploadMapPath);
+
+    			 LOG4CXX_INFO(_logger, "saveToFile(map,_configuration->uploadMapPath);");
+
+    			 lok->StopLocation();
+
+    			 LOG4CXX_INFO(_logger, "lok->StopLocation();");
+
+    			 locationThread->join();
+
+    			 LOG4CXX_INFO(_logger, "locationThread->join();");
+
+    			 delete lok;
+
+    			 LOG4CXX_INFO(_logger, "delete lok;");
+
+    			 char* mapPath = new char[_configuration->uploadMapPath.length()];
+    			 strcpy(mapPath,_configuration->uploadMapPath.c_str());
+
+    			 initLocation(mapPath);
+
+    			 delete mapPath;
+
+    			 LOG4CXX_INFO(_logger, "delete mapPath;");
+    		 }
+    		 catch (std::exception& e) {
+    			 LOG4CXX_ERROR(_logger, "Error in parsing configuration file: " << e.what());
+    			 exit(1);
+    		 }
     	 }
     }
 }
@@ -226,7 +261,13 @@ void LocationController::locationMathod()
 	lok->RunLocation();
 }
 
-
+void LocationController::saveToFile(string sMap,string sPath)
+{
+	ofstream myfile;
+	myfile.open(sPath.c_str(),ios::trunc);
+	myfile << sMap;
+	myfile.close();
+}
 
 int main(int argc, char *argv[]) {
 

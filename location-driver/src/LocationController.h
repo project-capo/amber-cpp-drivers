@@ -60,6 +60,7 @@ private:
 
 	void handleCurrentUploadMapRequest(std::string sMap);
 
+	void saveToFile(string sMap,string sPath);
 };
 
 
