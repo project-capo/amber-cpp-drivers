@@ -89,6 +89,9 @@ private:
 	void UsunWylosujNoweCzastki68a(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
 
 	void UsunWylosujNoweCzastki9(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,Room* bbBox,int lengthBBbox);
+
+	void UsunWylosujNoweCzastki10(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double Vr,double Vl,double dt,double wheelTrack);
+
 	/////// Diagnostic ////////////////
 
 

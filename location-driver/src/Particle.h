@@ -320,6 +320,58 @@ Particle()
 		sMarkToDelete = 0;*/
 	}
 
+	inline void LosujSasiada7(double X0,double Y0, double alfa,double Vr,double Vl,double dt,double wheelTrack) //Generuj czastke w sasiedztwie innej czastki
+		{
+		double speed = (Vr + Vl) / 2;
+		double losujSpeed = fRand(0,speed);
+
+
+		double zakras_Alfa = 0.055555556;
+
+		X = X0;
+		Y = Y0;
+		Alfa =  fRand(alfa - zakras_Alfa,alfa + zakras_Alfa);
+
+		ZaktualizujPrzesuniecie4(wheelTrack,losujSpeed,losujSpeed,dt);
+
+		//double zakres = 0.15;
+
+
+			//double Xmin = X0 - zakres;
+			//double Xmax = X0 + zakres;
+
+		//	double Ymin = Y0 - zakres;
+			//double Ymax = Y0 + zakres;
+
+
+			//X  = fRand(Xmin,Xmax);
+			//Y = fRand(Ymin,Ymax);
+
+
+
+
+
+			Probability = 0.0;
+			sMarkToDelete = 0;
+
+			/*double t = fRand(0,2 * M_PI);
+			double R1 =  fRand(0,PROMIEN);
+
+			X =  X0 + R1 * cos(t);
+			Y = Y0 + R1 * sin(t);
+
+			if(X < 0)
+				X *= -1;
+
+			if(Y < 0)
+				Y *= -1;
+
+
+			Alfa =  alfa;
+			Probability = 0.0;
+			sMarkToDelete = 0;*/
+		}
+
 	inline void LosujSasiada2(double X0,double Y0) //Generuj czastke w sasiedztwie innej czastki
 	{
 		double t = fRand(0,2 * M_PI);

@@ -534,6 +534,26 @@ void Location::UsunWylosujNoweCzastki9(Particle* ttablicaCzastek,unsigned int le
 	}
 }
 
+void Location::UsunWylosujNoweCzastki10(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double Vr,double Vl,double dt,double wheelTrack )
+{
+	if(iloscCzastekDoUsuniecia != length)
+	{
+
+		for(int i = (length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK); i < length; i++)
+			ttablicaCzastek[i].Losuj22();
+
+		for(int i = 1; i < length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++)
+		{
+			ttablicaCzastek[i].LosujSasiada7(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,ttablicaCzastek[0].Alfa,Vr,Vl,dt,wheelTrack);
+		}
+	}
+	else if(iloscCzastekDoUsuniecia == length)
+	{
+		for(int i = 1; i < length; i++)
+			ttablicaCzastek[i].Losuj22();
+	}
+}
+
 void Location::UsunWylosujNoweCzastki68(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
 {
 
