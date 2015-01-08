@@ -14,7 +14,7 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
-	amberUdp =  getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
+	amberUdp =  "192.168.2.201";//getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
 	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
@@ -162,7 +162,7 @@ void Location::RunLocation()
 		this->Pos_Y = tablicaCzastek[0].Y;
 		this->Prop = tablicaCzastek[0].Probability;
 		this->Pos_Alfa = tablicaCzastek[0].Alfa;
-		this->timeStamp = (end.tv_sec * 1000 + end.tv_usec/1000.0);
+		this->timeStamp = ((long) end.tv_sec * 1000 + end.tv_usec/1000.0);
 
 		//location_mutex.unlock();
 
@@ -670,7 +670,7 @@ char* Location::getRobotIPAdress()
 	 ifr.ifr_addr.sa_family = AF_INET;
 
 	 /* I want IP address attached to "eth0" */
-	 strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
+	 strncpy(ifr.ifr_name, "lo", IFNAMSIZ-1);
 
 	 ioctl(fd, SIOCGIFADDR, &ifr);
 
