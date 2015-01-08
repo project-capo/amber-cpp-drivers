@@ -39,6 +39,9 @@ LocationController::LocationController(int pipeInFd, int pipeOutFd, const char *
 
 void LocationController::initLocation()
 {
+	LOG4CXX_INFO(_logger, "initLocation");
+
+
 	//char* mapPath = "/home/szsz/git/Lokalizacja/Lokalizacja/Debug/labNowe3.roson";
 	//char* mapPath = "/home//panda//Lokalizacja//Lokalizacja//labNowe3.roson";
 
@@ -52,19 +55,29 @@ void LocationController::initLocation()
 
 void LocationController::initLocation(char* mapPath)
 {
-	unsigned int numberParticles = _configuration->NumberParticles;
-	double epsilon = _configuration->epsilon;
-	int generation = _configuration->generation;
-	unsigned int ilosc_losowanych_nowych_czastek = _configuration->ilosc_losowanych_nowych_czastek;
-	unsigned int przlieczenie_dla_pomiaru_skanera = _configuration->przlieczenie_dla_pomiaru_skanera;
+	LOG4CXX_INFO(_logger, "initLocation(char* mapPath)");
 
-	char* sIPPart = new char[_configuration->sIPPart.length()];
-	strcpy(sIPPart,_configuration->sIPPart.c_str());
+	try
+	{
+
+		unsigned int numberParticles = _configuration->NumberParticles;
+		double epsilon = _configuration->epsilon;
+		int generation = _configuration->generation;
+		unsigned int ilosc_losowanych_nowych_czastek = _configuration->ilosc_losowanych_nowych_czastek;
+		unsigned int przlieczenie_dla_pomiaru_skanera = _configuration->przlieczenie_dla_pomiaru_skanera;
+
+		char* sIPPart = new char[_configuration->sIPPart.length()];
+		strcpy(sIPPart,_configuration->sIPPart.c_str());
 
 
-	lok = new Location(_logger,mapPath,numberParticles,epsilon,generation,ilosc_losowanych_nowych_czastek,przlieczenie_dla_pomiaru_skanera,sIPPart);
+		lok = new Location(_logger,mapPath,numberParticles,epsilon,generation,ilosc_losowanych_nowych_czastek,przlieczenie_dla_pomiaru_skanera,sIPPart);
 
-	locationThread = new boost::thread(boost::bind(&LocationController::locationMathod, this));
+		locationThread = new boost::thread(boost::bind(&LocationController::locationMathod, this));
+	}
+	catch (std::exception& e) {
+		LOG4CXX_ERROR(_logger, "Error in initLocation(char* mapPath): " << e.what());
+		exit(1);
+	}
 }
 
 LocationController::~LocationController() {
@@ -76,67 +89,81 @@ LocationController::~LocationController() {
 
 void LocationController::handleDataMsg(amber::DriverHdr *driverHdr, amber::DriverMsg *driverMsg)
 {
-	if (_logger->isDebugEnabled()) {
-		LOG4CXX_DEBUG(_logger, "Message came");
-	}
-
-	int clientId = driverHdr->clientids_size() > 0 ? driverHdr->clientids(0) : 0;
-
-	// DataRequest
-	if (driverMsg->HasExtension(location_proto::get_location))
+	try
 	{
-		if (!driverMsg->has_synnum()) {
-			LOG4CXX_WARN(_logger, "Got CurrentLocationRequest, but syn num not set. Ignoring.");
-			return;
+		if (_logger->isDebugEnabled()) {
+			LOG4CXX_DEBUG(_logger, "Message came");
 		}
 
-		if (driverMsg->GetExtension(location_proto::get_location))
+		int clientId = driverHdr->clientids_size() > 0 ? driverHdr->clientids(0) : 0;
+
+		// DataRequest
+		if (driverMsg->HasExtension(location_proto::get_location))
 		{
-			handleCurrentLocationRequest(clientId, driverMsg->synnum());
+			if (!driverMsg->has_synnum()) {
+				LOG4CXX_WARN(_logger, "Got CurrentLocationRequest, but syn num not set. Ignoring.");
+				return;
+			}
+
+			if (driverMsg->GetExtension(location_proto::get_location))
+			{
+				handleCurrentLocationRequest(clientId, driverMsg->synnum());
+			}
+		}
+		else if(driverMsg->HasExtension(location_proto::upload_map))
+		{
+			if (!driverMsg->has_synnum()) {
+				LOG4CXX_WARN(_logger, "Got CurrentUploadMapRequest, but syn num not set. Ignoring.");
+				return;
+			}
+			else
+			{
+				try
+				{
+					::std::string map = driverMsg->GetExtension(location_proto::upload_map);
+					saveToFile(map,_configuration->uploadMapPath);
+
+					LOG4CXX_INFO(_logger, "saveToFile(map,_configuration->uploadMapPath);");
+
+					lok->StopLocation();
+
+					LOG4CXX_INFO(_logger, "lok->StopLocation();");
+
+					locationThread->join();
+
+					LOG4CXX_INFO(_logger, "locationThread->join();");
+
+					delete lok;
+
+					LOG4CXX_INFO(_logger, "delete lok;");
+
+					char* mapPath = new char[_configuration->uploadMapPath.length()];
+					strcpy(mapPath,_configuration->uploadMapPath.c_str());
+
+					LOG4CXX_INFO(_logger, "jestem tu");
+
+
+					LOG4CXX_INFO(_logger,"likalizacjamapy" <<  mapPath);
+
+
+					initLocation(mapPath);
+
+					delete mapPath;
+
+					LOG4CXX_INFO(_logger, "delete mapPath;");
+				}
+				catch (std::exception& e) {
+					LOG4CXX_ERROR(_logger, "Error in parsing configuration file: " << e.what());
+					exit(1);
+				}
+			}
 		}
 	}
-    else if(driverMsg->HasExtension(location_proto::upload_map))
-    {
-    	 if (!driverMsg->has_synnum()) {
-    	            LOG4CXX_WARN(_logger, "Got CurrentUploadMapRequest, but syn num not set. Ignoring.");
-    	            return;
-    	 }
-    	 else
-    	 {
-    		 try
-    		 {
-    			 ::std::string map = driverMsg->GetExtension(location_proto::upload_map);
-    			 saveToFile(map,_configuration->uploadMapPath);
-
-    			 LOG4CXX_INFO(_logger, "saveToFile(map,_configuration->uploadMapPath);");
-
-    			 lok->StopLocation();
-
-    			 LOG4CXX_INFO(_logger, "lok->StopLocation();");
-
-    			 locationThread->join();
-
-    			 LOG4CXX_INFO(_logger, "locationThread->join();");
-
-    			 delete lok;
-
-    			 LOG4CXX_INFO(_logger, "delete lok;");
-
-    			 char* mapPath = new char[_configuration->uploadMapPath.length()];
-    			 strcpy(mapPath,_configuration->uploadMapPath.c_str());
-
-    			 initLocation(mapPath);
-
-    			 delete mapPath;
-
-    			 LOG4CXX_INFO(_logger, "delete mapPath;");
-    		 }
-    		 catch (std::exception& e) {
-    			 LOG4CXX_ERROR(_logger, "Error in parsing configuration file: " << e.what());
-    			 exit(1);
-    		 }
-    	 }
-    }
+	catch (std::exception& e)
+	{
+		LOG4CXX_ERROR(_logger, "handle DataMsg execption" << e.what());
+		exit(1);
+	}
 }
 
 void LocationController::handleClientDiedMsg(int clientID) {
@@ -144,8 +171,17 @@ void LocationController::handleClientDiedMsg(int clientID) {
 
 }
 
-void LocationController::operator()() {
-	_amberPipes->operator ()();
+void LocationController::operator()() 
+{
+	LOG4CXX_INFO(_logger, "operator()");
+	try
+	{
+		_amberPipes->operator ()();
+	}
+	catch (std::exception& e)
+	{
+		LOG4CXX_ERROR(_logger, "operator()  execption:" << e.what());
+	}
 }
 
 amber::DriverMsg *LocationController::buildCurrentLocationMsg()
@@ -211,18 +247,18 @@ void LocationController::parseConfigurationFile(const char *filename) {
 	//unsigned int rear_rc_address;
 
 
-    options_description desc("Location options");
-    desc.add_options()
-            ("location.mapPath", value<string>(&_configuration->mapPath)->default_value("."))
-            ("location.NumberParticles", value<unsigned int>(&_configuration->NumberParticles)->default_value(20))
-            ("location.epsilon", value<double>(&_configuration->epsilon)->default_value(0.8))
-            ("location.generation", value<int>(&_configuration->generation)->default_value(1))
-            ("location.ilosc_losowanych_nowych_czastek", value<unsigned int>(&_configuration->ilosc_losowanych_nowych_czastek)->default_value(20))
-            ("location.przlieczenie_dla_pomiaru_skanera", value<unsigned int>(&_configuration->przlieczenie_dla_pomiaru_skanera)->default_value(12))
-            ("location.RandomWalkMaxDistance", value<double>(&_configuration->RandomWalkMaxDistance)->default_value(0.7))
-            ("location.StandardDeviation", value<double>(&_configuration->StandardDeviation)->default_value(0.3))
-            ("location.sIPPart", value<string>(&_configuration->sIPPart)->default_value("127.0.0.1"))
-            ("location.uploadMapPath",  value<string>(&_configuration->uploadMapPath)->default_value("."));
+	options_description desc("Location options");
+	desc.add_options()
+            				("location.mapPath", value<string>(&_configuration->mapPath)->default_value("."))
+            				("location.NumberParticles", value<unsigned int>(&_configuration->NumberParticles)->default_value(20))
+            				("location.epsilon", value<double>(&_configuration->epsilon)->default_value(0.8))
+            				("location.generation", value<int>(&_configuration->generation)->default_value(1))
+            				("location.ilosc_losowanych_nowych_czastek", value<unsigned int>(&_configuration->ilosc_losowanych_nowych_czastek)->default_value(20))
+            				("location.przlieczenie_dla_pomiaru_skanera", value<unsigned int>(&_configuration->przlieczenie_dla_pomiaru_skanera)->default_value(12))
+            				("location.RandomWalkMaxDistance", value<double>(&_configuration->RandomWalkMaxDistance)->default_value(0.7))
+            				("location.StandardDeviation", value<double>(&_configuration->StandardDeviation)->default_value(0.3))
+            				("location.sIPPart", value<string>(&_configuration->sIPPart)->default_value("127.0.0.1"))
+            				("location.uploadMapPath",  value<string>(&_configuration->uploadMapPath)->default_value("."));
 
 
 	/*("roboclaw.motors_max_qpps", value<unsigned int>(&_configuration->motors_max_qpps)->default_value(13800))

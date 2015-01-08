@@ -20,6 +20,7 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 
 	srand(10);
 
+    LOG4CXX_INFO(_logger, "Before: parseJasonFile");
 	countRoomAndBox = parseJasonFile(mapPath,bBox,rooms);
 	LOG4CXX_INFO(_logger, "After: parseJasonFile");
 
