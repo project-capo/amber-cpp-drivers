@@ -33,7 +33,7 @@ using namespace amber;
 LoggerPtr AmberPipes::_logger (Logger::getLogger("Amber.Pipes"));
 
 AmberPipes::AmberPipes(MessageHandler *receiver, int pipeInFd, int pipeOutFd):
-		_messageHandler(receiver), _pipeInFd(pipeInFd), _pipeOutFd(pipeOutFd) {
+				_messageHandler(receiver), _pipeInFd(pipeInFd), _pipeOutFd(pipeOutFd) {
 
 }
 
@@ -119,8 +119,16 @@ ssize_t AmberPipes::readExact(ssize_t len) {
 		in = read(_pipeInFd, _pipeInBuffer + got, len - got);
 		if (in <= 0) {
 			if (got != len) {
-				LOG4CXX_FATAL(_logger, "Unexpected number of bytes read from pipe. Terminating." << "got:" << got << "len:" << len );
-				throw PipeUnexpectedNumberException();
+				if(got == 0)
+				{
+					LOG4CXX_FATAL(_logger, "Unexpected number of bytes read from pipe. Terminating." << "got:" << got << "len:" << len );
+					exit(1);
+				}
+				else
+				{
+					LOG4CXX_FATAL(_logger, "Exeption -> PipeUnexpectedNumberException(  Unexpected number of bytes read from pipe. Terminating.)" << "got:" << got << "len:" << len );
+					throw PipeUnexpectedNumberException();
+				}
 				//exit(1);
 			}
 			return got;
@@ -143,10 +151,10 @@ ssize_t AmberPipes::writeExact(ssize_t len) {
 
 	do {
 		out = write(_pipeOutFd, _pipeOutBuffer + written, len - written);
-	    if (out <= 0) {
-	    	return written;
-	    }
-	    written += out;
+		if (out <= 0) {
+			return written;
+		}
+		written += out;
 
 	} while (written < len);
 
