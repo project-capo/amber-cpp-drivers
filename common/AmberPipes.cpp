@@ -119,8 +119,9 @@ ssize_t AmberPipes::readExact(ssize_t len) {
 		in = read(_pipeInFd, _pipeInBuffer + got, len - got);
 		if (in <= 0) {
 			if (got != len) {
-				LOG4CXX_FATAL(_logger, "Unexpected number of bytes read from pipe. Terminating.");
-				exit(1);
+				LOG4CXX_FATAL(_logger, "Unexpected number of bytes read from pipe. Terminating." << "got:" << got << "len:" << len );
+				throw PipeUnexpectedNumberException();
+				//exit(1);
 			}
 			return got;
 		}

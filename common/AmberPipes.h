@@ -18,6 +18,7 @@
 #define MAX_EVENTS 2
 
 class PipeException: public std::exception {};
+class PipeUnexpectedNumberException: public std::exception {};
 
 class MessageHandler {
 public:
