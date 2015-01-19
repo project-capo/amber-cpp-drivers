@@ -179,7 +179,11 @@ void Location::RunLocation()
 //UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
 //UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
 
-		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
+//		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
+//		void UsunWylosujNoweCzastki10(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double Vr,double Vl,double dt,double wheelTrack);
+
+
+		UsunWylosujNoweCzastki10(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia,roboClaw->Vr,roboClaw->Vl,deletaTime,roboClaw->wheelTrack);
 		iloscCzastekDoUsuniacia = 0;
 
 #if DIAGNOSTIC == 1
