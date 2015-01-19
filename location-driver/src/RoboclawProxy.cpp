@@ -108,6 +108,9 @@ double RoboclawProxy::GetSpeed()
 				{
 					udp->Send(requestScan,requestScanLength);
 					packetBytes = udp->Receive();
+
+					if(udp->n < 0)
+						LOG4CXX_INFO(_logger, "Timeout GetSpeed");
 				}
 				while(udp->n < 0);
 
@@ -117,6 +120,9 @@ double RoboclawProxy::GetSpeed()
 				frontRightSpeed =  currentSpeed->frontrightspeed();
 				rearLeftSpeed = currentSpeed->rearleftspeed();
 				rearRightSpeed = currentSpeed->rearrightspeed();
+
+				if(!isSpeedOK(frontLeftSpeed,frontRightSpeed, rearLeftSpeed, rearRightSpeed))
+					LOG4CXX_INFO(_logger, "GetSpeed -> isSpeedOK");
 
 			}
 			while(!isSpeedOK(frontLeftSpeed,frontRightSpeed, rearLeftSpeed, rearRightSpeed));

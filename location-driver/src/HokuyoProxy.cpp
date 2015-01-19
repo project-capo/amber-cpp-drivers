@@ -105,6 +105,9 @@ void HokuyoProxy::GetScan()
 			{
 				udp->Send(requestScan,requestScanLength);
 				packetBytes = udp->Receive();
+
+				if(udp->n < 0)
+					LOG4CXX_INFO(_logger, "Timeout GetScan");
 			}
 			while(udp->n < 0);
 
