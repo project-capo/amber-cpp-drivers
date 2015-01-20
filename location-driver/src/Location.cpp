@@ -48,6 +48,12 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	ILOSC_LOSOWANYCH_NOWYCH_CZASTEK = ilosc_losowanych_nowych_czastek;
 
 	work = true;
+	
+	this->Pos_X = 0;
+	this->Pos_Y = 0;	
+	this->Prop = 0;
+	this->Pos_Alfa = 0;
+	this->timeStamp = 0;
 }
 
 Location::~Location()
