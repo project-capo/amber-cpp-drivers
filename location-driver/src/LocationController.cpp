@@ -30,6 +30,8 @@ LocationController::LocationController(int pipeInFd, int pipeOutFd, const char *
 {
 	LOG4CXX_INFO(_logger, "LocationController");
 
+	lok = NULL;
+
 	parseConfigurationFile(confFilename);
 
 	_amberPipes = new AmberPipes(this, pipeInFd, pipeOutFd);
@@ -195,11 +197,22 @@ amber::DriverMsg *LocationController::buildCurrentLocationMsg()
 
 	location_mutex.lock();
 
-	currentLocation->set_x(lok->Pos_X);
-	currentLocation->set_y(lok->Pos_Y);
-	currentLocation->set_p(lok->Prop);
-	currentLocation->set_alfa(lok->Pos_Alfa);
-	currentLocation->set_timestamp(lok->timeStamp);
+	if(lok != NULL)
+	{
+		currentLocation->set_x(lok->Pos_X);
+		currentLocation->set_y(lok->Pos_Y);
+		currentLocation->set_p(lok->Prop);
+		currentLocation->set_alfa(lok->Pos_Alfa);
+		currentLocation->set_timestamp(lok->timeStamp);
+	}
+	else
+	{
+		currentLocation->set_x(0);
+		currentLocation->set_y(0);
+		currentLocation->set_p(0);
+		currentLocation->set_alfa(0);
+		currentLocation->set_timestamp(0);
+	}
 
 	location_mutex.unlock();
 
@@ -249,16 +262,16 @@ void LocationController::parseConfigurationFile(const char *filename) {
 
 	options_description desc("Location options");
 	desc.add_options()
-            				("location.mapPath", value<string>(&_configuration->mapPath)->default_value("."))
-            				("location.NumberParticles", value<unsigned int>(&_configuration->NumberParticles)->default_value(20))
-            				("location.epsilon", value<double>(&_configuration->epsilon)->default_value(0.8))
-            				("location.generation", value<int>(&_configuration->generation)->default_value(1))
-            				("location.ilosc_losowanych_nowych_czastek", value<unsigned int>(&_configuration->ilosc_losowanych_nowych_czastek)->default_value(20))
-            				("location.przlieczenie_dla_pomiaru_skanera", value<unsigned int>(&_configuration->przlieczenie_dla_pomiaru_skanera)->default_value(12))
-            				("location.RandomWalkMaxDistance", value<double>(&_configuration->RandomWalkMaxDistance)->default_value(0.7))
-            				("location.StandardDeviation", value<double>(&_configuration->StandardDeviation)->default_value(0.3))
-            				("location.sIPPart", value<string>(&_configuration->sIPPart)->default_value("127.0.0.1"))
-            				("location.uploadMapPath",  value<string>(&_configuration->uploadMapPath)->default_value("."));
+            								("location.mapPath", value<string>(&_configuration->mapPath)->default_value("."))
+            								("location.NumberParticles", value<unsigned int>(&_configuration->NumberParticles)->default_value(20))
+            								("location.epsilon", value<double>(&_configuration->epsilon)->default_value(0.8))
+            								("location.generation", value<int>(&_configuration->generation)->default_value(1))
+            								("location.ilosc_losowanych_nowych_czastek", value<unsigned int>(&_configuration->ilosc_losowanych_nowych_czastek)->default_value(20))
+            								("location.przlieczenie_dla_pomiaru_skanera", value<unsigned int>(&_configuration->przlieczenie_dla_pomiaru_skanera)->default_value(12))
+            								("location.RandomWalkMaxDistance", value<double>(&_configuration->RandomWalkMaxDistance)->default_value(0.7))
+            								("location.StandardDeviation", value<double>(&_configuration->StandardDeviation)->default_value(0.3))
+            								("location.sIPPart", value<string>(&_configuration->sIPPart)->default_value("127.0.0.1"))
+            								("location.uploadMapPath",  value<string>(&_configuration->uploadMapPath)->default_value("."));
 
 
 	/*("roboclaw.motors_max_qpps", value<unsigned int>(&_configuration->motors_max_qpps)->default_value(13800))
