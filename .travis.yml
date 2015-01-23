@@ -1,5 +1,17 @@
+env:
+  global:
+   - secure: "Ha8csMGut19E8pFdJ6Je1P1QbK+tdZxr9u/NbW6Kez+luTEkDHoiQaQ0wdaBbXporGSK7oGjPX69XGcuTnMmtO2+otM+3CQb8nPiDJ+dsKzf1x5BC3EO9xWMvsHkRhvReaH47RvjWa2QOLXOD9XZHY8TpNfecvJeFi9ps61ZzUA="
 language: cpp
 compiler:
   - g++
 script:
   - make all
+addons:
+  coverity_scan:
+    project:
+      name: "project-capo/amber-cpp-drivers"
+      description: "Build submitted via Travis CI"
+    notification_email: pawel@suder.info
+    build_command_prepend: "make clean"
+    build_command: "make all"
+    branch_pattern: coverity_scan
