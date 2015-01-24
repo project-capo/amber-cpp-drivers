@@ -9,6 +9,12 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	_logger = logger;
 	LOG4CXX_INFO(_logger, "Location");
 
+	this->Pos_X = 0;
+	this->Pos_Y = 0;
+	this->Prop = 0;
+	this->Pos_Alfa = 0;
+	this->timeStamp = 0;
+
 #if DIAGNOSTIC == 1
 	IPPart =  sIPPart;// "192.168.2.101";//"172.29.53.31";//"192.168.56.1";//"192.168.2.102";//"169.254.162.40"; //wizualizacja
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
