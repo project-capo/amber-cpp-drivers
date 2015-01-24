@@ -162,7 +162,7 @@ void Location::RunLocation()
 		this->Pos_Y = tablicaCzastek[0].Y;
 		this->Prop = tablicaCzastek[0].Probability;
 		this->Pos_Alfa = tablicaCzastek[0].Alfa;
-		this->timeStamp = ((long) end.tv_sec * 1000 + end.tv_usec/1000.0);
+		this->timeStamp = (long long int) (end.tv_sec * 1000.0 + end.tv_usec/1000.0);
 
 		//location_mutex.unlock();
 

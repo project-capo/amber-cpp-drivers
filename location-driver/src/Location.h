@@ -116,7 +116,7 @@ public:
 	double Pos_Y;
 	double Prop;
 	double Pos_Alfa;
-	long timeStamp;
+	long long int timeStamp;
 
 };
 
