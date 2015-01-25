@@ -4,6 +4,8 @@ env:
 language: cpp
 compiler:
   - g++
+before_script:
+  - apt-get install protobuf-compiler
 script:
   - make all
 addons:
