@@ -5,7 +5,7 @@ language: cpp
 compiler:
   - g++
 before_script:
-  - apt-get install protobuf-compiler
+  - sudo apt-get install protobuf-compiler libprotobuf-dev liblog4cxx10-dev libboost-dev libboost-thread-dev libboost-program-options-dev libboost-system-dev
 script:
   - make all
 addons:
