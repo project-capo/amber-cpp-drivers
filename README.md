@@ -1,13 +1,18 @@
 amber-cpp-drivers
 =================
 
+[![Build Status](https://travis-ci.org/project-capo/amber-cpp-clients.svg?branch=master)](https://travis-ci.org/project-capo/amber-cpp-clients)
+
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/4014/badge.svg?style=flat)](https://scan.coverity.com/projects/4014)
+
 Robot devices drivers for Amber platform in C/C++.
 
 Requirements
 ------------
 
-* `protobuf` and `protoc`
-* `libboost-dev` and stuff, like `libboost-thread`, `libboost-system`
+* `protobuf-compiler` and `libprotobuf-dev`
+* `libboost-dev` and stuff, like `libboost-thread-dev`, `libboost-system-dev`, `libboost-program-options-dev`
+* `liblog4cxx10-dev`
 * `g++` with `make`
 
 How to use (Makefile)
