@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define BUF_SIZE1 7168
+#define BUF_SIZE1 10000
 #define TIMEOUT_S      2     /* Seconds between retransmits */
 #define TIMEOUT_MSS    100000     /* Seconds between retransmits */
 
