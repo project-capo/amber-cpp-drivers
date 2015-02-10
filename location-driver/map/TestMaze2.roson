@@ -1,0 +1,184 @@
+{
+  "walls": [
+    {
+      "type": "wall",
+      "id": "Wall267",
+      "width": 0.1,
+      "height": 0.3,
+      "color": "ff8080ff",
+      "from": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "to": {
+        "x": 0.0,
+        "y": 1.7
+      }
+    },
+    {
+      "type": "wall",
+      "id": "Wall269",
+      "width": 0.1,
+      "height": 0.3,
+      "color": "ff80ff00",
+      "from": {
+        "x": 1.3,
+        "y": 0.0
+      },
+      "to": {
+        "x": 1.3,
+        "y": 1.7
+      }
+    },
+    {
+      "type": "wall",
+      "id": "Wall270",
+      "width": 0.1,
+      "height": 0.3,
+      "color": "ff80ff00",
+      "from": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "to": {
+        "x": 1.3,
+        "y": 0.0
+      }
+    },
+    {
+      "type": "wall",
+      "id": "Wall274",
+      "width": 0.1,
+      "height": 0.3,
+      "color": "ff8080ff",
+      "from": {
+        "x": 0.0,
+        "y": 1.7
+      },
+      "to": {
+        "x": 0.0,
+        "y": 4.1
+      }
+    },
+    {
+      "type": "wall",
+      "id": "Wall275",
+      "width": 0.1,
+      "height": 0.3,
+      "color": "ff8080ff",
+      "from": {
+        "x": 0.0,
+        "y": 4.1
+      },
+      "to": {
+        "x": 3.0,
+        "y": 4.1
+      }
+    },
+    {
+      "type": "wall",
+      "id": "Wall276",
+      "width": 0.1,
+      "height": 0.3,
+      "color": "ff80ff00",
+      "from": {
+        "x": 3.0,
+        "y": 1.7
+      },
+      "to": {
+        "x": 3.0,
+        "y": 4.1
+      }
+    },
+    {
+      "type": "wall",
+      "id": "Wall277",
+      "width": 0.1,
+      "height": 0.3,
+      "color": "ff80ff00",
+      "from": {
+        "x": 1.3,
+        "y": 1.7
+      },
+      "to": {
+        "x": 3.0,
+        "y": 1.7
+      }
+    }
+  ],
+  "gates": [],
+  "spaces": [
+    {
+      "type": "space",
+      "id": "Space282",
+      "kind": "room",
+      "name": null,
+      "function": null,
+      "expectedPersonCount": 3,
+      "area": 9.41,
+      "diameter": 5.0803543183522155
+    }
+  ],
+  "nodes": [
+    {
+      "type": "node",
+      "id": "Node283",
+      "kind": "spaceNode",
+      "position": {
+        "x": 1.3003719447396387,
+        "y": 2.4185441020191285
+      }
+    }
+  ],
+  "robots": [],
+  "victims": [],
+  "space-walls": [
+    {
+      "type": "space-wall",
+      "spaceId": "Space282",
+      "wallId": "Wall267"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space282",
+      "wallId": "Wall269"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space282",
+      "wallId": "Wall270"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space282",
+      "wallId": "Wall274"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space282",
+      "wallId": "Wall275"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space282",
+      "wallId": "Wall276"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space282",
+      "wallId": "Wall277"
+    }
+  ],
+  "space-gates": [],
+  "space-nodes": [
+    {
+      "type": "space-node",
+      "spaceId": "Space282",
+      "nodeId": "Node283"
+    }
+  ],
+  "space-robots": [],
+  "space-victims": [],
+  "gate-nodes": [],
+  "node-nodes": []
+}
