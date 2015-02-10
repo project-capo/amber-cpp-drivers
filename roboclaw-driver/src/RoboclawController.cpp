@@ -49,6 +49,12 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd, const char *
 		_temperatureMonitorThread = new boost::thread(boost::bind(&RoboclawController::temperatureMonitor, this));	
 	}
 	
+	_configuration->current_speed_interval = 500;
+
+	if (_configuration->current_speed_interval > 0) {
+		_currentSpeedMonitorThread = new boost::thread(boost::bind(&RoboclawController::currentSpeedMonitor, this));
+	}
+
 	_roboclawDriver->setLed1(true);
 	_roboclawDriver->setLed2(false);
 	
@@ -180,10 +186,10 @@ void RoboclawController::handleMotorsEncoderCommand(roboclaw_proto::MotorsSpeed 
 
 	MotorsSpeedStruct mc;
 
-	mc.frontLeftSpeed = toQpps(motorsCommand->frontleftspeed());
-	mc.frontRightSpeed = toQpps(motorsCommand->frontrightspeed());
-	mc.rearLeftSpeed = toQpps(motorsCommand->rearleftspeed());
-	mc.rearRightSpeed = toQpps(motorsCommand->rearrightspeed());
+	currntSpeed.frontLeftSpeed = mc.frontLeftSpeed = toQpps(motorsCommand->frontleftspeed());
+	currntSpeed.frontRightSpeed = mc.frontRightSpeed = toQpps(motorsCommand->frontrightspeed());
+	currntSpeed.rearLeftSpeed = mc.rearLeftSpeed = toQpps(motorsCommand->rearleftspeed());
+	currntSpeed.rearRightSpeed = mc.rearRightSpeed = toQpps(motorsCommand->rearrightspeed());
 
 	if (!_roboclawDisabled) {
 
@@ -365,6 +371,52 @@ void RoboclawController::temperatureMonitor() {
 		}
 	}
 	
+}
+
+
+void RoboclawController::currentSpeedMonitor() {
+	LOG4CXX_INFO(_logger, "Current Speed Monitor, interval: " << _configuration->current_speed_interval << "ms");
+
+	 int speed_histereza = 100;
+
+	while (1)
+	{
+		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->current_speed_interval));
+
+
+		MotorsSpeedStruct mc;
+		bool speedReadSuccess = false;
+
+		if (!_roboclawDisabled) {
+
+			// repeat reads in case of read errors
+			for (unsigned int i = 0; i < _configuration->critical_read_repeats; i++) {
+				try {
+					_roboclawDriver->readCurrentSpeed(&mc);
+					speedReadSuccess = true;
+					break;
+				} catch (RoboclawSerialException& e) {
+					// do nothing
+				}
+			}
+		}
+
+		if (speedReadSuccess)
+		{
+			if(abs(mc.frontLeftSpeed - currntSpeed.frontLeftSpeed) > speed_histereza ||	abs(mc.frontRightSpeed -  currntSpeed.frontRightSpeed) > speed_histereza ||
+			   abs(mc.rearLeftSpeed - currntSpeed.rearLeftSpeed) > speed_histereza || abs(mc.rearRightSpeed -  currntSpeed.rearRightSpeed) > speed_histereza)
+			{
+
+				LOG4CXX_INFO(_logger, "Current Speed Monitor, reseting");
+				resetAndWait();
+			}
+		}
+		else
+		{
+			LOG4CXX_INFO(_logger, "Current Speed Monitor, reseting - else !speedReadSuccess");
+			resetAndWait();
+		}
+	}
 }
 
 void RoboclawController::resetAndWait() {
