@@ -5,6 +5,9 @@
 #include <cfloat>
 #include <algorithm>
 
+#include "JesonHelper.h"
+#include "MazeWall.h"
+
 #define TEST 1
 #define PROMIEN 0.7
 
@@ -20,9 +23,9 @@ using std::string;
 
 struct Point
 {
-	public:
-		double X;
-		double Y;
+public:
+	double X;
+	double Y;
 };
 
 struct Line
@@ -49,16 +52,36 @@ private:
 
 
 
+
+
 public:	
 
 	double maxX;
-		double maxY;
+	double maxY;
 
-Particle()
-{
+	double* GaussTable;
+	string* WallNameTable;
+	double* CountDistance;
+
+	Particle()
+	{
 		Alfa = alfaNew = d = MaxRadius = maxX = maxY = MaxY = MaxX = MinX = MinY = rMAX = X = Y = Probability =  0.0;
 		sMarkToDelete = 0;
-}
+		GaussTable = NULL;
+		WallNameTable = NULL;
+		CountDistance = NULL;
+	}
+
+	void Init(int ScanLength)
+	{
+		GaussTable = new double[ScanLength];
+		WallNameTable = new string[ScanLength];
+		CountDistance = new double[ScanLength];
+
+		//dodac debuga z nazwa sciany do ktorej przeliczlismy przeciecie
+		//dodac debuga z wyliczona wartoscia
+		//dodac debuga z gaussem
+	}
 
 	Particle(double xMax,double yMax)
 	{
@@ -67,6 +90,18 @@ Particle()
 
 		maxX = xMax;
 		maxY = yMax;
+	}
+
+	~Particle()
+	{
+		if(WallNameTable != NULL)
+			delete WallNameTable;
+
+		if(GaussTable != NULL)
+			delete GaussTable;
+
+		if(CountDistance != NULL)
+			delete CountDistance;
 	}
 
 	/*Particle(double dMinX,double dMaxX,double dMinY, double dMaxY,double dRMAX)
@@ -98,7 +133,7 @@ Particle()
 
 	inline double Round(double dbVal)
 	{
-	    //return dbVal;
+		//return dbVal;
 		//return ceil(dbVal * dbShift) / dbShift;
 
 		//int test = (int) (dbVal * 100);
@@ -132,8 +167,8 @@ Particle()
 
 	inline double fRand(double fMin, double fMax)
 	{
-	    double f = (double)rand() / RAND_MAX;
-	    return fMin + f * (fMax - fMin);
+		double f = (double)rand() / RAND_MAX;
+		return fMin + f * (fMax - fMin);
 	}
 
 	inline void LosujPozycje(double X1,double X2,double Y1, double Y2)
@@ -141,13 +176,13 @@ Particle()
 		X = fRand(X1,X2);
 		Y = fRand(Y1,Y2);
 
-		#if TEST == 1
-			if(X < 0)
-				printf("LosujPozycje X UJEMNE,X1%e,X2%e,Y1%eY2%e",X1,X2,Y1,Y2);
-			if(Y < 0)
-				printf("LosujPozycje Y UJEMNE,X1%e,X2%e,Y1%eY2%e",X1,X2,Y1,Y2);
-			fflush(NULL);
-		#endif
+#if TEST == 1
+		if(X < 0)
+			printf("LosujPozycje X UJEMNE,X1%e,X2%e,Y1%eY2%e",X1,X2,Y1,Y2);
+		if(Y < 0)
+			printf("LosujPozycje Y UJEMNE,X1%e,X2%e,Y1%eY2%e",X1,X2,Y1,Y2);
+		fflush(NULL);
+#endif
 
 		Alfa = fRand(0,2 * M_PI);
 		//AlfaStopnie = Alfa * (180 / M_PI);;
@@ -159,7 +194,7 @@ Particle()
 	{
 		X = abs((MaxX - MinX) * ( (double)rand() / (double)RAND_MAX ) + MinX); 	//(MinX + ((double)  rand()) / MaxX);  //X = (MinX +  (double)rand() / RAND_MAX) * MaxX; 
 		Y =  abs((MaxY - MinY) * ( (double)rand() / (double)RAND_MAX ) + MinY); //Y = (MinY + ((double)rand() / MaxY); //Y = (MinY + (double)rand() / RAND_MAX) * MaxY;
-		
+
 		Alfa = ((double)rand() / RAND_MAX) * 360; //kat ograniczony do 360 stopni
 		Probability = 0.0;
 		sMarkToDelete = 0;
@@ -173,7 +208,7 @@ Particle()
 
 		X = abs( X0 + R1 * cos(t)); 
 		Y = abs(Y0 + R1 * sin(t)); 
-		
+
 		if(X > MaxX)
 			X = MaxX;
 
@@ -196,22 +231,22 @@ Particle()
 	}*/
 
 	inline void Losuj22() //Generuj czastke losowa na mapie
-		{
-				X =  fRand(0,maxX);
-				Y = fRand(0,maxY);
-				Alfa =  fRand(0,2 * M_PI);
-				Probability = 0.0;
-				sMarkToDelete = 0;
-		}
+	{
+		X =  fRand(0,maxX);
+		Y = fRand(0,maxY);
+		Alfa =  fRand(0,2 * M_PI);
+		Probability = 0.0;
+		sMarkToDelete = 0;
+	}
 
 	inline void Losuj33(double minX,double maxX,double minY,double maxY) //Generuj czastke losowa na mapie
-		{
-				X =  fRand(minX,maxX);
-				Y = fRand(minY,maxY);
-				Alfa =  fRand(0,2 * M_PI);
-				Probability = 0.0;
-				sMarkToDelete = 0;
-		}
+	{
+		X =  fRand(minX,maxX);
+		Y = fRand(minY,maxY);
+		Alfa =  fRand(0,2 * M_PI);
+		Probability = 0.0;
+		sMarkToDelete = 0;
+	}
 
 	inline void LosujSasiada(double X0,double Y0, double alfa) //Generuj czastke w sasiedztwie innej czastki
 	{
@@ -228,11 +263,11 @@ Particle()
 			Y *= -1;
 
 #if DIAGNOSTIC == 1
-			if(X < 0)
-				printf("LosujPozycje X UJEMNE,%e",X);
-			if(Y < 0)
-				printf("LosujPozycje Y UJEMNE,%e",Y);
-			fflush(NULL);
+		if(X < 0)
+			printf("LosujPozycje X UJEMNE,%e",X);
+		if(Y < 0)
+			printf("LosujPozycje Y UJEMNE,%e",Y);
+		fflush(NULL);
 #endif
 
 		Alfa =  alfa;
@@ -321,7 +356,7 @@ Particle()
 	}
 
 	inline void LosujSasiada7(double X0,double Y0, double alfa,double Vr,double Vl,double dt,double wheelTrack) //Generuj czastke w sasiedztwie innej czastki
-		{
+	{
 		double speed = (Vr + Vl) / 2;
 		double losujSpeed = fRand(0,speed);
 
@@ -337,24 +372,24 @@ Particle()
 		//double zakres = 0.15;
 
 
-			//double Xmin = X0 - zakres;
-			//double Xmax = X0 + zakres;
+		//double Xmin = X0 - zakres;
+		//double Xmax = X0 + zakres;
 
 		//	double Ymin = Y0 - zakres;
-			//double Ymax = Y0 + zakres;
+		//double Ymax = Y0 + zakres;
 
 
-			//X  = fRand(Xmin,Xmax);
-			//Y = fRand(Ymin,Ymax);
+		//X  = fRand(Xmin,Xmax);
+		//Y = fRand(Ymin,Ymax);
 
 
 
 
 
-			Probability = 0.0;
-			sMarkToDelete = 0;
+		Probability = 0.0;
+		sMarkToDelete = 0;
 
-			/*double t = fRand(0,2 * M_PI);
+		/*double t = fRand(0,2 * M_PI);
 			double R1 =  fRand(0,PROMIEN);
 
 			X =  X0 + R1 * cos(t);
@@ -370,7 +405,7 @@ Particle()
 			Alfa =  alfa;
 			Probability = 0.0;
 			sMarkToDelete = 0;*/
-		}
+	}
 
 	inline void LosujSasiada2(double X0,double Y0) //Generuj czastke w sasiedztwie innej czastki
 	{
@@ -387,11 +422,11 @@ Particle()
 			Y *= -1;
 
 #if DIAGNOSTIC == 1
-			if(X < 0)
-				printf("LosujPozycje X UJEMNE,%e",X);
-			if(Y < 0)
-				printf("LosujPozycje Y UJEMNE,%e",Y);
-			fflush(NULL);
+		if(X < 0)
+			printf("LosujPozycje X UJEMNE,%e",X);
+		if(Y < 0)
+			printf("LosujPozycje Y UJEMNE,%e",Y);
+		fflush(NULL);
 #endif
 
 		Alfa =  fRand(0,2 * M_PI);
@@ -412,7 +447,7 @@ Particle()
 		//double R1 =  fRand(0,PROMIEN);
 
 		//X =  X0 + R1 * cos(t);
-	//	Y = Y0 + R1 * sin(t);
+		//	Y = Y0 + R1 * sin(t);
 
 		if(X < 0)
 			X *= -1;
@@ -421,11 +456,11 @@ Particle()
 			Y *= -1;
 
 #if DIAGNOSTIC == 1
-			if(X < 0)
-				printf("LosujPozycje X UJEMNE,%e",X);
-			if(Y < 0)
-				printf("LosujPozycje Y UJEMNE,%e",Y);
-			fflush(NULL);
+		if(X < 0)
+			printf("LosujPozycje X UJEMNE,%e",X);
+		if(Y < 0)
+			printf("LosujPozycje Y UJEMNE,%e",Y);
+		fflush(NULL);
 #endif
 
 		//Alfa =  alfa;
@@ -467,99 +502,99 @@ Particle()
 		return result;
 	}
 
-inline void getLine(double x,double y,double alfa,double *A,double *B,double *C)
-{
-	//double a2 = - tan( alfa);
+	inline void getLine(double x,double y,double alfa,double *A,double *B,double *C)
+	{
+		//double a2 = - tan( alfa);
 		//double b2 = 1;
-	 	//double c2 =  Y2 + (a2 * X2);
+		//double c2 =  Y2 + (a2 * X2);
 
-	/*(*A) = - tan(alfa);
+		/*(*A) = - tan(alfa);
 	(*B) = 1;
 	(*C) = (Y + ((*A) * X));
-*/
-	(*A) = tan(alfa);
-	(*A) = Round(*A);
-	//(*A) = round((*A) * 10000) / 10000;
+		 */
+		(*A) = tan(alfa);
+		(*A) = Round(*A);
+		//(*A) = round((*A) * 10000) / 10000;
 
-	(*B) = -1;
+		(*B) = -1;
 
-	(*C) = (y - ((*A) * x));
-	(*C) = Round((*C));
-	//(*C) = round((*C) * 10000) / 10000;
+		(*C) = (y - ((*A) * x));
+		(*C) = Round((*C));
+		//(*C) = round((*C) * 10000) / 10000;
 
-}
-
-inline Line getLine(double x,double y,double alfa)
-{
-	Line temp;
-
-	temp.A = Round(tan(alfa));
-	temp.B = -1;
-	temp.C =Round((y - (temp.A * x)));
-
-	return temp;
-}
-
-
-inline Point calculateIntersection(MazeWall *wall,double alfa,double X2,double Y2)
-{
-	Point temp;
-
-	double W;
-	double Wx;
-	double Wy;
-	double a1 = wall->A;
-	double b1 = wall->B;
-	double c1 = wall->C;
-
-	double a2,b2,c2;
-
-	getLine(X2,Y2,alfa,&a2,&b2,&c2);
-
-	W = a1 * b2 - b1 * a2;
-
-	if(W != 0)
-	{
-		Wx =  b1 * c2 - c1 * b2;
-		Wy = c1 * a2 - a1 * c2;
-
-		temp.X = Wx / W;
-		temp.X = Round(temp.X);
-
-		temp.Y = Wy / W;
-		temp.Y = Round(temp.Y);
 	}
-	else
-		temp.X = temp.Y = -1;
 
-	return temp;
-}
+	inline Line getLine(double x,double y,double alfa)
+	{
+		Line temp;
 
-inline double calculateDistnace(double X1,double Y1,double X2,double Y2)
-{
-	return sqrt(pow(X1 - X2 ,2) + pow(Y1 - Y2,2));
-}
+		temp.A = Round(tan(alfa));
+		temp.B = -1;
+		temp.C =Round((y - (temp.A * x)));
 
-inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
-{	
-	double dist = -1.0;
-
-	double W;
-	double Wx;
-	double Wy;
-	double x;
-	double y;
-	double a1 = wall->A;
-	double b1 = wall->B;
-	double c1 = wall->C;
-
-	double a2,b2,c2;
-	//double prawie_zero;
-
-	getLine(X2,Y2,alfa,&a2,&b2,&c2);
+		return temp;
+	}
 
 
-	/*
+	inline Point calculateIntersection(MazeWall *wall,double alfa,double X2,double Y2)
+	{
+		Point temp;
+
+		double W;
+		double Wx;
+		double Wy;
+		double a1 = wall->A;
+		double b1 = wall->B;
+		double c1 = wall->C;
+
+		double a2,b2,c2;
+
+		getLine(X2,Y2,alfa,&a2,&b2,&c2);
+
+		W = a1 * b2 - b1 * a2;
+
+		if(W != 0)
+		{
+			Wx =  b1 * c2 - c1 * b2;
+			Wy = c1 * a2 - a1 * c2;
+
+			temp.X = Wx / W;
+			temp.X = Round(temp.X);
+
+			temp.Y = Wy / W;
+			temp.Y = Round(temp.Y);
+		}
+		else
+			temp.X = temp.Y = -1;
+
+		return temp;
+	}
+
+	inline double calculateDistnace(double X1,double Y1,double X2,double Y2)
+	{
+		return sqrt(pow(X1 - X2 ,2) + pow(Y1 - Y2,2));
+	}
+
+	inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
+	{
+		double dist = -1.0;
+
+		double W;
+		double Wx;
+		double Wy;
+		double x;
+		double y;
+		double a1 = wall->A;
+		double b1 = wall->B;
+		double c1 = wall->C;
+
+		double a2,b2,c2;
+		//double prawie_zero;
+
+		getLine(X2,Y2,alfa,&a2,&b2,&c2);
+
+
+		/*
 	prawie_zero = (X2 * a2 + Y2 * b2 + c2);
 
 	if( (prawie_zero) >  0.0001)
@@ -576,264 +611,264 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 	if(prawie_zeroDlasciany > 0.0001)
 			prawie_zeroDlasciany = 0.0;
 
-*/
+		 */
 
-	W = a1 * b2 - b1 * a2;
-	
-	if(W != 0)
-	{
-		Wx =  b1 * c2 - c1 * b2;
-		Wy = c1 * a2 - a1 * c2;
+		W = a1 * b2 - b1 * a2;
 
-		x = Wx / W;
-		y = Wy / W;
-
-		x = Round(x);
-		y = Round(y);
-		//X = round(X * 100) / 100;
-		//Y = round(Y * 100) / 100;
-
-		if(canCountDistanceToWall(alfa,Y2,y))
+		if(W != 0)
 		{
-			//if((wall->From_X <= X) && (X <= wall->To_X) && (wall->From_Y <= Y) && (Y <= wall->To_Y))
+			Wx =  b1 * c2 - c1 * b2;
+			Wy = c1 * a2 - a1 * c2;
+
+			x = Wx / W;
+			y = Wy / W;
+
+			x = Round(x);
+			y = Round(y);
+			//X = round(X * 100) / 100;
+			//Y = round(Y * 100) / 100;
+
+			if(canCountDistanceToWall(alfa,Y2,y))
+			{
+				//if((wall->From_X <= X) && (X <= wall->To_X) && (wall->From_Y <= Y) && (Y <= wall->To_Y))
 				//dist = sqrt(pow(X - X2 ,2) + pow( Y - Y2,2)); //wartosc oczekiwan*/
 
-			if((wall->From_X == wall->To_X) && (wall->From_Y <= y) && (y <= wall->To_Y))
-				dist = sqrt(pow(x - X2 ,2) + pow( y - Y2,2)); //wartosc oczekiwan*/
-			else if((wall->From_Y == wall->To_Y) && (wall->From_X <= x) && (x <= wall->To_X))
-				dist = sqrt(pow(x - X2 ,2) + pow( y - Y2,2)); //wartosc oczekiwan*/
-			else if((wall->From_X <= x) && (x <= wall->To_X) && (wall->From_Y <= y) && (y <= wall->To_Y))
-				dist = sqrt(pow(x - X2 ,2) + pow( y - Y2,2)); //wartosc oczekiwan*/
+				if((wall->From_X == wall->To_X) && (wall->From_Y <= y) && (y <= wall->To_Y))
+					dist = sqrt(pow(x - X2 ,2) + pow( y - Y2,2)); //wartosc oczekiwan*/
+				else if((wall->From_Y == wall->To_Y) && (wall->From_X <= x) && (x <= wall->To_X))
+					dist = sqrt(pow(x - X2 ,2) + pow( y - Y2,2)); //wartosc oczekiwan*/
+				else if((wall->From_X <= x) && (x <= wall->To_X) && (wall->From_Y <= y) && (y <= wall->To_Y))
+					dist = sqrt(pow(x - X2 ,2) + pow( y - Y2,2)); //wartosc oczekiwan*/
 
-			/*if((wall->From_Y == wall->To_Y) && (wall->From_X <= X) && (X <= wall->To_X))
+				/*if((wall->From_Y == wall->To_Y) && (wall->From_X <= X) && (X <= wall->To_X))
 				dist = sqrt(pow(X - X2 ,2) + pow( Y - Y2,2)); //wartosc oczekiwana
 			else if((wall->From_X == X <= wall->To_X) && (wall->From_Y <= Y) && (Y <= wall->To_Y))
 				dist = sqrt(pow(X - X2 ,2) + pow( Y - Y2,2)); //wartosc oczekiwan*/
 
+			}
+
+			//		if(dist > -1)
+			//	printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, X,Y,dist);
+			//				fflush(NULL);
 		}
 
-//		if(dist > -1)
-	//	printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, X,Y,dist);
-	//				fflush(NULL);
-	}
-
-	//printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, X,Y,dist);
+		//printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, X,Y,dist);
 		//		fflush(NULL);
 
-	return dist;
-}
+		return dist;
+	}
 
-		inline void ZaktualizujPrzesuniecie4(double wheelTrack,double Vl, double  Vr, double dt)
+	inline void ZaktualizujPrzesuniecie4(double wheelTrack,double Vl, double  Vr, double dt)
+	{
+		if(Vl != Vr)
 		{
-			if(Vl != Vr)
-			{
-				alfaNew = (((Vr - Vl) * dt) / wheelTrack);
+			alfaNew = (((Vr - Vl) * dt) / wheelTrack);
 
-				X += (wheelTrack * (Vr + Vl)) / (2*(Vr - Vl)) * (sin(alfaNew + Alfa) - sin(Alfa));
-				Y -= (wheelTrack * (Vr + Vl)) / (2*(Vr - Vl)) * (cos(alfaNew + Alfa) - cos(Alfa));
+			X += (wheelTrack * (Vr + Vl)) / (2*(Vr - Vl)) * (sin(alfaNew + Alfa) - sin(Alfa));
+			Y -= (wheelTrack * (Vr + Vl)) / (2*(Vr - Vl)) * (cos(alfaNew + Alfa) - cos(Alfa));
 
-				Alfa += alfaNew;
+			Alfa += alfaNew;
 
-			}
-			else
-			{
-				d = ((Vr + Vl) / 2) * dt;
-
-				X += d * cos(Alfa);
-				Y += d * sin(Alfa);
-			}
 		}
-
-		inline double Normalize(double value,double min,double max) //normalizacja min max
+		else
 		{
-			if(max > 0)
-				return (((value - min) * (NEW_MAX - NEW_MIN)) / (max - min)) + NEW_MIN;
-			else
-				return 0;
+			d = ((Vr + Vl) / 2) * dt;
+
+			X += d * cos(Alfa);
+			Y += d * sin(Alfa);
 		}
+	}
 
-		inline bool canCountDistance1 (MazeWall *wall,double X2,double Y2, double alfaMin, double alfaMax)
+	inline double Normalize(double value,double min,double max) //normalizacja min max
+	{
+		if(max > 0)
+			return (((value - min) * (NEW_MAX - NEW_MIN)) / (max - min)) + NEW_MIN;
+		else
+			return 0;
+	}
+
+	inline bool canCountDistance1 (MazeWall *wall,double X2,double Y2, double alfaMin, double alfaMax)
+	{
+		double aMin = - tan( (alfaMin * M_PI) / 180.0);
+		double bMin = 1;
+		double cMin =  Y2 + (aMin * X2);
+
+		double aMax = - tan( (alfaMax * M_PI) / 180.0);
+		double bMax = 1;
+		double cMax = -( Y2 + (aMax * X2));
+
+		double ResultAmin = aMin * wall->From_X + bMin * wall->From_Y + cMin;
+		double ResultAmax = aMax * wall->From_X + bMax * wall->From_Y + cMax;
+
+		if((ResultAmin < 0) && (ResultAmax < 0))
+			return false;
+
+		ResultAmin = aMin * wall->To_X + bMin * wall->To_Y + cMin;
+		ResultAmax = aMax * wall->To_X + bMax * wall->To_Y + cMax;
+
+		if((ResultAmin < 0) && (ResultAmax < 0))
+			return false;
+
+		return true;
+	}
+
+	inline bool canCountDistance (double X2,double Y2,double alfaCzastki,double X_przeciecia,double Y_przeciecia, double alfaSkanu)
+	{
+		//srodek robota robota
+		double aCz = - tan( (alfaCzastki * M_PI) / 180.0);
+		double bCz = 1;
+		double cCz =  Y2 + (aCz * X2);
+
+		bool result = false;
+
+		double wynik = aCz * X_przeciecia + bCz * Y_przeciecia + cCz;
+
+
+		if(alfaSkanu > alfaCzastki)
 		{
-			double aMin = - tan( (alfaMin * M_PI) / 180.0);
-			double bMin = 1;
-			double cMin =  Y2 + (aMin * X2);
-
-			double aMax = - tan( (alfaMax * M_PI) / 180.0);
-			double bMax = 1;
-			double cMax = -( Y2 + (aMax * X2));
-
-			double ResultAmin = aMin * wall->From_X + bMin * wall->From_Y + cMin;
-			double ResultAmax = aMax * wall->From_X + bMax * wall->From_Y + cMax;
-
-			if((ResultAmin < 0) && (ResultAmax < 0))
-				return false;
-
-			ResultAmin = aMin * wall->To_X + bMin * wall->To_Y + cMin;
-		    ResultAmax = aMax * wall->To_X + bMax * wall->To_Y + cMax;
-
-		    if((ResultAmin < 0) && (ResultAmax < 0))
-		    	return false;
-
-		    return true;
+			if(wynik > 0)
+				result = true;
 		}
-
-		inline bool canCountDistance (double X2,double Y2,double alfaCzastki,double X_przeciecia,double Y_przeciecia, double alfaSkanu)
+		else
 		{
-			//srodek robota robota
-			double aCz = - tan( (alfaCzastki * M_PI) / 180.0);
-			double bCz = 1;
-			double cCz =  Y2 + (aCz * X2);
+			if(wynik < 0)
+				result = true;
 
-			bool result = false;
-
-			double wynik = aCz * X_przeciecia + bCz * Y_przeciecia + cCz;
-
-
-			if(alfaSkanu > alfaCzastki)
-			{
-				if(wynik > 0)
-					result = true;
-			}
-			else
-			{
-				if(wynik < 0)
-					result = true;
-
-			}
-				   return result;
 		}
+		return result;
+	}
 
 
-		inline void UpdateCountProbability3(Room* box,int scanTable[],double angleTable[],int length)
-		{
-			double dist;
-			double gauss;
-			double sumProbability = 0.0;
-			Probability = 0.0;
-			int iloscScian = box->ContainerWallCount();
-			//double norm;
+	inline void UpdateCountProbability3(Room* box,int scanTable[],double angleTable[],int length)
+	{
+		double dist;
+		double gauss;
+		double sumProbability = 0.0;
+		Probability = 0.0;
+		int iloscScian = box->ContainerWallCount();
+		//double norm;
 
 #if DIAGNOSTIC == 1
-			double tablicaOdleglosci[length];
-			double tablicaKatow[length];
-			double tablicaSkan[length];
-			double tablicaGauss[length];
-			std::string tablicaScien[length];
+		double tablicaOdleglosci[length];
+		double tablicaKatow[length];
+		double tablicaSkan[length];
+		double tablicaGauss[length];
+		std::string tablicaScien[length];
 #endif
-			//int www = 0;
-			int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
+		//int www = 0;
+		int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
 
-			for (int i = 0; i < length; i++)
-			{
-				int test = 0;
-				test++;
+		for (int i = 0; i < length; i++)
+		{
+			int test = 0;
+			test++;
 
 #if DIAGNOSTIC == 1
-				tablicaOdleglosci[i] = -1;
-				tablicaKatow[i] = this->Alfa + angleTable[i];
-				tablicaSkan[i] = (((double) scanTable[i]) / 1000);
-				tablicaGauss[i] = -1;
+			tablicaOdleglosci[i] = -1;
+			tablicaKatow[i] = this->Alfa + angleTable[i];
+			tablicaSkan[i] = (((double) scanTable[i]) / 1000);
+			tablicaGauss[i] = -1;
 #endif
 
-				for (int j = 0; j < iloscScian; j++)
+			for (int j = 0; j < iloscScian; j++)
+			{
+
+				dist =  getDistnace(&box->ContainerWallTable[j],this->Alfa + angleTable[i],this->X,this->Y); //wartosc oczekiwana
+
+				if(dist > 0)
 				{
 
-						dist =  getDistnace(&box->ContainerWallTable[j],this->Alfa + angleTable[i],this->X,this->Y); //wartosc oczekiwana
-
-					if(dist > 0)
-					{
 
 
-
-						double scan = (((double) scanTable[i]) / 1000);
-						gauss =  Gauss2(dist,scan); //exp((-1 * pow(scanTable[i] - dist,2)) / ( 2 * ODCHYLENIE * ODCHYLENIE)) / (2 * M_PI * ODCHYLENIE);
+					double scan = (((double) scanTable[i]) / 1000);
+					gauss =  Gauss2(dist,scan); //exp((-1 * pow(scanTable[i] - dist,2)) / ( 2 * ODCHYLENIE * ODCHYLENIE)) / (2 * M_PI * ODCHYLENIE);
 
 #if DIAGNOSTIC == 1
-						tablicaOdleglosci[i] = dist;
-						tablicaKatow[i] = angleTable[i];
-						tablicaSkan[i] = scan;
-						tablicaGauss[i] = gauss;
+					tablicaOdleglosci[i] = dist;
+					tablicaKatow[i] = angleTable[i];
+					tablicaSkan[i] = scan;
+					tablicaGauss[i] = gauss;
 
-						tablicaScien[i] = (&box->ContainerWallTable[j])->Id;
+					tablicaScien[i] = (&box->ContainerWallTable[j])->Id;
 #endif
 
-						ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
+					ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
 
-						//www++;
+					//www++;
 
 
-						//Normalize(gauss,0,Gauss2(10,10)); //gauss;
+					//Normalize(gauss,0,Gauss2(10,10)); //gauss;
 
 
 					sumProbability += gauss;
-					}
 				}
 			}
+		}
 
 #if DIAGNOSTIC == 1
-			for(int i = 0; i < length;i++)
-			{
-				printf("ID: %d Obliczone: %f Kat: %f Skan: %f Gaus: %fSciana: %s\n",i, tablicaOdleglosci[i],tablicaKatow[i],tablicaSkan[i],tablicaGauss[i],tablicaScien[i].c_str());
-			}
+		for(int i = 0; i < length;i++)
+		{
+			printf("ID: %d Obliczone: %f Kat: %f Skan: %f Gaus: %fSciana: %s\n",i, tablicaOdleglosci[i],tablicaKatow[i],tablicaSkan[i],tablicaGauss[i],tablicaScien[i].c_str());
+		}
 #endif
 
-			fflush(NULL);
+		fflush(NULL);
 
-			double yy = ((double) ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa) * Gauss2(1,1);
-			Probability =  Normalize(sumProbability,0,yy);  //(sumProbability / index);  /// (length / PRZLIECZENIE_DLA_POMIARU_SKANERA)); //sumProbability
-		}
+		double yy = ((double) ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa) * Gauss2(1,1);
+		Probability =  Normalize(sumProbability,0,yy);  //(sumProbability / index);  /// (length / PRZLIECZENIE_DLA_POMIARU_SKANERA)); //sumProbability
+	}
 
 
-		inline double radianNaStpnie(double radian)
+	inline double radianNaStpnie(double radian)
+	{
+		return  radian * 180 /M_PI;
+	}
+
+	//inline bool isIntersectionOK(Line lineStart, Line lineEnd,double alfa,Point intersection,MazeWall *wall)
+	inline bool isIntersectionOK(MazeWall *wall,double alfa,Point intersection)
+	{
+		bool result = false;
+
+		if((intersection.X >= 0) && (intersection.Y >= 0))
 		{
-			return  radian * 180 /M_PI;
-		}
+			double y = Round(intersection.Y - this->Y);
 
-		//inline bool isIntersectionOK(Line lineStart, Line lineEnd,double alfa,Point intersection,MazeWall *wall)
-		inline bool isIntersectionOK(MazeWall *wall,double alfa,Point intersection)
-		{
-			bool result = false;
-
-			if((intersection.X >= 0) && (intersection.Y >= 0))
+			if((alfa >= 0) && (alfa <= M_PI))
 			{
-				double y = Round(intersection.Y - this->Y);
-
-				if((alfa >= 0) && (alfa <= M_PI))
+				if(y >= 0)
 				{
-					if(y >= 0)
-					{
-							if((wall->From_X == wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
-									result = true;
-							else if((wall->From_Y == wall->To_Y) && (wall->From_X <= intersection.X) && (intersection.X <= wall->To_X))
-									result = true;
-							else if((wall->From_X <= intersection.X) && (intersection.X <= wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
-									result = true;
-					}
+					if((wall->From_X == wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
+						result = true;
+					else if((wall->From_Y == wall->To_Y) && (wall->From_X <= intersection.X) && (intersection.X <= wall->To_X))
+						result = true;
+					else if((wall->From_X <= intersection.X) && (intersection.X <= wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
+						result = true;
 				}
-				else if((alfa > M_PI) && (alfa < M_PI2))
-					{
-						if(y <= 0)
-						{
-							if((wall->From_X == wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
-									result = true;
-							else if((wall->From_Y == wall->To_Y) && (wall->From_X <= intersection.X) && (intersection.X <= wall->To_X))
-									result = true;
-							else if((wall->From_X <= intersection.X) && (intersection.X <= wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
-									result = true;
-						}
-					}
-					else
-					{
-						int bug = 22;
-						bug++;
-					}
 			}
+			else if((alfa > M_PI) && (alfa < M_PI2))
+			{
+				if(y <= 0)
+				{
+					if((wall->From_X == wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
+						result = true;
+					else if((wall->From_Y == wall->To_Y) && (wall->From_X <= intersection.X) && (intersection.X <= wall->To_X))
+						result = true;
+					else if((wall->From_X <= intersection.X) && (intersection.X <= wall->To_X) && (wall->From_Y <= intersection.Y) && (intersection.Y <= wall->To_Y))
+						result = true;
+				}
+			}
+			else
+			{
+				int bug = 22;
+				bug++;
+			}
+		}
 
-			return result;
+		return result;
 
 
 
-			/*double tmplineStar = lineStart.A * intersection.X + lineStart.B * intersection.Y + lineStart.C;
+		/*double tmplineStar = lineStart.A * intersection.X + lineStart.B * intersection.Y + lineStart.C;
 			double tmplineEnd = lineEnd.A * intersection.X + lineEnd.B * intersection.Y + lineEnd.C;
 
 			if((alfa >= 0) && (alfa < M_PI))
@@ -861,113 +896,113 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 				}
 			}*/
 
-			//return result;
+		//return result;
+	}
+
+	inline void UpdateCountProbability5(Room* box,int scanTable[],double angleTable[],int length)
+	{
+		Point intersection;
+
+		double dist;
+		double gauss;
+		double sumProbability = 0.0;
+		Probability = 0.0;
+		int iloscScian = box->ContainerWallCount();
+		//double norm;
+
+#if DIAGNOSTIC == 1
+		double tablicaOdleglosci[length];
+		double tablicaKatow[length];
+		double tablicaSkan[length];
+		double tablicaGauss[length];
+		std::string tablicaScien[length];
+
+		MazeWall * wall;
+#endif
+
+		int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
+
+		for (int i = 0; i < length; i++)
+		{
+			int test = 0;
+			test++;
+
+#if DIAGNOSTIC == 1
+			tablicaOdleglosci[i] = -1;
+			tablicaKatow[i] = this->Alfa + angleTable[i];
+			tablicaSkan[i] = (((double) scanTable[i]) / 1000);
+			tablicaGauss[i] = -1;
+#endif
+			dist = DBL_MAX;
+
+			double dist2;
+			double tempAlfa;
+
+			tempAlfa = this->Alfa + angleTable[i];
+
+			if(tempAlfa < 0)
+				tempAlfa += M_PI2;
+			else if(tempAlfa > M_PI2)
+				tempAlfa -= M_PI2;
+
+			tempAlfa = Round(tempAlfa);
+
+			for (int j = 0; j < iloscScian; j++)
+			{
+				intersection = calculateIntersection(&box->ContainerWallTable[j],tempAlfa,this->X,this->Y);
+
+				if(isIntersectionOK(&box->ContainerWallTable[j],tempAlfa,intersection))
+					dist2 = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
+				else
+					dist2 = -1;
+
+				if(dist2 > -1)
+				{
+					dist = min(dist2,dist);
+
+#if DIAGNOSTIC == 1
+					if(min(dist2,dist) == dist2)
+						tablicaScien[i] = (&box->ContainerWallTable[j])->Id;
+
+#endif
+				}
+
+#if DIAGNOSTIC == 1
+				wall = &box->ContainerWallTable[j];
+#endif
+				//printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, intersection.X,intersection.Y,dist2);
+				//fflush(NULL);
+			}
+
+			//printf("End\n");
+
+			if(dist > 0)
+			{
+				double scan = (((double) scanTable[i]) / 1000);
+
+
+				if((scan < 0.05f) && (dist > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
+					gauss =  Gauss2(scan,scan);
+				else
+					gauss =  Gauss2(dist,scan);
+
+#if DIAGNOSTIC == 1
+				tablicaOdleglosci[i] = dist;
+				tablicaKatow[i] = angleTable[i];
+				tablicaSkan[i] = scan;
+				tablicaGauss[i] = gauss;
+#endif
+
+				ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
+				sumProbability += gauss;
+			}
+
+			//int www;
+			//		www= 112;
 		}
 
-		inline void UpdateCountProbability5(Room* box,int scanTable[],double angleTable[],int length)
-			{
-			Point intersection;
 
-			double dist;
-					double gauss;
-					double sumProbability = 0.0;
-					Probability = 0.0;
-					int iloscScian = box->ContainerWallCount();
-					//double norm;
-
-#if DIAGNOSTIC == 1
-					double tablicaOdleglosci[length];
-					double tablicaKatow[length];
-					double tablicaSkan[length];
-					double tablicaGauss[length];
-					std::string tablicaScien[length];
-
-					MazeWall * wall;
-#endif
-
-					int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
-
-					for (int i = 0; i < length; i++)
-					{
-						int test = 0;
-						test++;
-
-#if DIAGNOSTIC == 1
-						tablicaOdleglosci[i] = -1;
-						tablicaKatow[i] = this->Alfa + angleTable[i];
-						tablicaSkan[i] = (((double) scanTable[i]) / 1000);
-						tablicaGauss[i] = -1;
-#endif
-						dist = DBL_MAX;
-
-						double dist2;
-						double tempAlfa;
-
-						tempAlfa = this->Alfa + angleTable[i];
-
-						if(tempAlfa < 0)
-							tempAlfa += M_PI2;
-						else if(tempAlfa > M_PI2)
-							tempAlfa -= M_PI2;
-
-						tempAlfa = Round(tempAlfa);
-
-						for (int j = 0; j < iloscScian; j++)
-						{
-							 intersection = calculateIntersection(&box->ContainerWallTable[j],tempAlfa,this->X,this->Y);
-
-							 if(isIntersectionOK(&box->ContainerWallTable[j],tempAlfa,intersection))
-								 dist2 = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
-							 else
-								 dist2 = -1;
-
-							if(dist2 > -1)
-							{
-								dist = min(dist2,dist);
-
-								#if DIAGNOSTIC == 1
-									if(min(dist2,dist) == dist2)
-										tablicaScien[i] = (&box->ContainerWallTable[j])->Id;
-
-								#endif
-							}
-
-#if DIAGNOSTIC == 1
-							 wall = &box->ContainerWallTable[j];
-#endif
-							//printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, intersection.X,intersection.Y,dist2);
-							//fflush(NULL);
-						}
-
-						//printf("End\n");
-
-						if(dist > 0)
-						{
-												double scan = (((double) scanTable[i]) / 1000);
-
-
-												if((scan < 0.05f) && (dist > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
-													gauss =  Gauss2(scan,scan);
-												else
-													gauss =  Gauss2(dist,scan);
-
-#if DIAGNOSTIC == 1
-												tablicaOdleglosci[i] = dist;
-												tablicaKatow[i] = angleTable[i];
-												tablicaSkan[i] = scan;
-												tablicaGauss[i] = gauss;
-#endif
-
-												ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
-											sumProbability += gauss;
-						}
-
-						//int www;
-				//		www= 112;
-					}
-
-
-					/*for(int i = 0; i < length;i++)
+		/*for(int i = 0; i < length;i++)
 					{
 						printf("ID: %d Obliczone: %f Kat: %f Skan: %f Gaus: %fSciana: %s\n",i, tablicaOdleglosci[i],tablicaKatow[i],tablicaSkan[i],tablicaGauss[i],tablicaScien[i].c_str());
 
@@ -976,120 +1011,322 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 
 
 
-					double yy = ((double) ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa) * Gauss2(1,1);
-					Probability =  Normalize(sumProbability,0,yy);  //(sumProbability / index);  /// (length / PRZLIECZENIE_DLA_POMIARU_SKANERA)); //sumProbability
-				}
+		double yy = ((double) ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa) * Gauss2(1,1);
+		Probability =  Normalize(sumProbability,0,yy);  //(sumProbability / index);  /// (length / PRZLIECZENIE_DLA_POMIARU_SKANERA)); //sumProbability
+	}
 
 
-		inline void UpdateCountProbability4(Room* box,int scanTable[],double angleTable[],int length)
+	inline void UpdateCountProbability4(Room* box,int scanTable[],double angleTable[],int length)
+	{
+		double dist;
+		double gauss;
+		double sumProbability = 0.0;
+		Probability = 0.0;
+		int iloscScian = box->ContainerWallCount();
+		//double norm;
+
+#if DIAGNOSTIC == 1
+		double tablicaOdleglosci[length];
+		double tablicaKatow[length];
+		double tablicaSkan[length];
+		double tablicaGauss[length];
+		std::string tablicaScien[length];
+#endif
+		//int www = 0;
+		int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
+
+		for (int i = 0; i < length; i++)
 		{
-				double dist;
-				double gauss;
-				double sumProbability = 0.0;
-				Probability = 0.0;
-				int iloscScian = box->ContainerWallCount();
-				//double norm;
-
+			int test = 0;
+			test++;
 #if DIAGNOSTIC == 1
-				double tablicaOdleglosci[length];
-				double tablicaKatow[length];
-				double tablicaSkan[length];
-				double tablicaGauss[length];
-				std::string tablicaScien[length];
+			tablicaOdleglosci[i] = -1;
+			tablicaKatow[i] = this->Alfa + angleTable[i];
+			tablicaSkan[i] = (((double) scanTable[i]) / 1000);
+			tablicaGauss[i] = -1;
 #endif
-				//int www = 0;
-				int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0;
 
-				for (int i = 0; i < length; i++)
+			dist = DBL_MAX;
+
+			double dist2;
+
+			//printf("ID %d,Kat %f KatStopnie:%f\t",i,tablicaKatow[i],radianNaStpnie(tablicaKatow[i]));
+
+			//printf("Start\n");
+
+			for (int j = 0; j < iloscScian; j++)
+			{
+
+				//printf("%s\n",(&box->ContainerWallTable[j])->Id.c_str());
+
+				dist2 = getDistnace(&box->ContainerWallTable[j],this->Alfa + angleTable[i],this->X,this->Y);
+
+				if(dist2 > -1)
 				{
-					int test = 0;
-					test++;
-#if DIAGNOSTIC == 1
-					tablicaOdleglosci[i] = -1;
-					tablicaKatow[i] = this->Alfa + angleTable[i];
-					tablicaSkan[i] = (((double) scanTable[i]) / 1000);
-					tablicaGauss[i] = -1;
-#endif
-
-					dist = DBL_MAX;
-
-					double dist2;
-
-					//printf("ID %d,Kat %f KatStopnie:%f\t",i,tablicaKatow[i],radianNaStpnie(tablicaKatow[i]));
-
-					//printf("Start\n");
-
-					for (int j = 0; j < iloscScian; j++)
-					{
-
-						//printf("%s\n",(&box->ContainerWallTable[j])->Id.c_str());
-
-						dist2 = getDistnace(&box->ContainerWallTable[j],this->Alfa + angleTable[i],this->X,this->Y);
-
-						if(dist2 > -1)
-						{
-							dist = min(dist2,dist);
-
-							#if DIAGNOSTIC == 1
-								if(min(dist2,dist) == dist2)
-									tablicaScien[i] = (&box->ContainerWallTable[j])->Id;
-
-							#endif
-						}
-					}
-
-					//printf("End\n");
-
-					if(dist > 0)
-					{
-											double scan = (((double) scanTable[i]) / 1000);
-											gauss =  Gauss2(dist,scan);
+					dist = min(dist2,dist);
 
 #if DIAGNOSTIC == 1
-											tablicaOdleglosci[i] = dist;
-											tablicaKatow[i] = angleTable[i];
-											tablicaSkan[i] = scan;
-											tablicaGauss[i] = gauss;
+					if(min(dist2,dist) == dist2)
+						tablicaScien[i] = (&box->ContainerWallTable[j])->Id;
+
 #endif
-
-											ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
-										sumProbability += gauss;
-					}
-
-					//int www;
-					//www= 112;
 				}
-
-#if DIAGNOSTIC == 1
-				for(int i = 0; i < length;i++)
-				{
-					printf("ID: %d Obliczone: %f Kat: %f Skan: %f Gaus: %fSciana: %s\n",i, tablicaOdleglosci[i],tablicaKatow[i],tablicaSkan[i],tablicaGauss[i],tablicaScien[i].c_str());
-
-					fflush(NULL);
-				}
-#endif
-
-
-				double yy = ((double) ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa) * Gauss2(1,1);
-				Probability =  Normalize(sumProbability,0,yy);  //(sumProbability / index);  /// (length / PRZLIECZENIE_DLA_POMIARU_SKANERA)); //sumProbability
 			}
+
+			//printf("End\n");
+
+			if(dist > 0)
+			{
+				double scan = (((double) scanTable[i]) / 1000);
+				gauss =  Gauss2(dist,scan);
+
+#if DIAGNOSTIC == 1
+				tablicaOdleglosci[i] = dist;
+				tablicaKatow[i] = angleTable[i];
+				tablicaSkan[i] = scan;
+				tablicaGauss[i] = gauss;
+#endif
+
+				ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
+				sumProbability += gauss;
+			}
+
+			//int www;
+			//www= 112;
+		}
+
+#if DIAGNOSTIC == 1
+		for(int i = 0; i < length;i++)
+		{
+			printf("ID: %d Obliczone: %f Kat: %f Skan: %f Gaus: %fSciana: %s\n",i, tablicaOdleglosci[i],tablicaKatow[i],tablicaSkan[i],tablicaGauss[i],tablicaScien[i].c_str());
+
+			fflush(NULL);
+		}
+#endif
+
+
+		double yy = ((double) ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa) * Gauss2(1,1);
+		Probability =  Normalize(sumProbability,0,yy);  //(sumProbability / index);  /// (length / PRZLIECZENIE_DLA_POMIARU_SKANERA)); //sumProbability
+	}
 
 
 	inline double Gauss2(double prop,double real)
 	{
-	double a,b,c,dd;
-	double x = prop;
-	double delta = sqrt(ODCHYLENIE);
-	double ni = real;
+		double a,b,c,dd;
+		double x = prop;
+		double delta = sqrt(ODCHYLENIE);
+		double ni = real;
 
-	a = 1 / (delta  *sqrt(2 * M_PI));
-	b = ni;
-	c = delta;
-	dd = 0;
+		a = 1 / (delta  *sqrt(2 * M_PI));
+		b = ni;
+		c = delta;
+		dd = 0;
 
-	return (a * exp( pow(x - b,2) / (-2 * pow(c,2)))) + dd;
+		return (a * exp( pow(x - b,2) / (-2 * pow(c,2)))) + dd;
+	}
+
+	inline MazeWall* getCurrentWall(Room * room,double alfa)
+	{
+		Point intersection;
+
+		for(unsigned int i = 0; i < room->walls.size(); i++)
+		{
+			intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
+
+			if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+				return room->CurrentWall();
+			else
+				room->GetNextWall();
+		}
+
+		return NULL;
+	}
+
+	inline double normalizeAlfa(double alfa)
+	{
+		if(alfa < 0)
+			alfa += M_PI2;
+		else if(alfa > M_PI2)
+			alfa -= M_PI2;
+
+		return  Round(alfa);
+	}
+
+	inline void UpdateCountProbability55(Room* room,int scanTable[],double angleTable[],unsigned int scanLength)
+	{
+		double alfa = normalizeAlfa(this->Alfa + angleTable[0]);
+		double distance;
+		double scan;
+		double gauss;
+		double sumProbability = 0.0;
+		Point intersection;
+
+		Probability = 0.0;
+
+		MazeWall* currentWall = getCurrentWall(room,alfa);
+
+		if(currentWall != NULL)
+		{
+			for(unsigned int i = 0; i < scanLength;i++)
+			{
+				WallNameTable[i] = "";
+				GaussTable[i] =	CountDistance[i] = 0.0;
+
+				alfa = normalizeAlfa(this->Alfa + angleTable[i]);
+				intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
+
+				if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+				{
+
+					distance = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
+
+					scan = (((double) scanTable[i]) / 1000);
+
+					if((scan < 0.05f) && (distance > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
+						gauss =  Gauss2(scan,scan);
+					else
+						gauss =  Gauss2(distance,scan);
+
+					GaussTable[i] = gauss;
+					WallNameTable[i] = room->CurrentWall()->Id;
+					CountDistance[i] = distance;
+
+					sumProbability += gauss;
+				}
+				else
+				{
+					room->GetNextWall();
+
+					alfa = normalizeAlfa(this->Alfa + angleTable[i]);
+					intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
+
+					if(!isIntersectionOK(room->CurrentWall(),alfa,intersection))
+						room->ChangeDirection();
+				}
+			}
+
+			Probability =  Normalize(sumProbability,0, ((double) scanLength) * Gauss2(1,1));
+		}
 	}
 };
+
+
+
+//		Point intersection;
+
+//		double dist;
+//		double gauss;
+//		double sumProbability = 0.0;
+//		Probability = 0.0;
+//		int iloscScian = box->ContainerWallCount();
+//double norm;
+
+//#if DIAGNOSTIC == 1
+//		double tablicaOdleglosci[length];
+//		double tablicaKatow[length];
+//		double tablicaSkan[length];
+//		double tablicaGauss[length];
+//		std::string tablicaScien[length];
+//
+//		MazeWall * wall;
+//#endif
+
+//		int ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa = 0; //???
+//
+//		for (int i = 0; i < length; i++)
+//		{
+//int test = 0;
+//test++;
+
+//#if DIAGNOSTIC == 1
+//			tablicaOdleglosci[i] = -1;
+//			tablicaKatow[i] = this->Alfa + angleTable[i];
+//			tablicaSkan[i] = (((double) scanTable[i]) / 1000);
+//			tablicaGauss[i] = -1;
+//#endif
+//dist = DBL_MAX;
+
+//double dist2;
+//double tempAlfa;
+
+//tempAlfa = this->Alfa + angleTable[i];
+
+//			if(tempAlfa < 0)
+//				tempAlfa += M_PI2;
+//			else if(tempAlfa > M_PI2)
+//				tempAlfa -= M_PI2;
+//
+//			tempAlfa = Round(tempAlfa);
+
+//			for (int j = 0; j < iloscScian; j++)
+//			{
+//				//intersection = calculateIntersection(&box->ContainerWallTable[j],tempAlfa,this->X,this->Y);
+
+//if(isIntersectionOK(&box->ContainerWallTable[j],tempAlfa,intersection))
+//	dist2 = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
+//else
+//	dist2 = -1;
+
+//				if(dist2 > -1)
+//				{
+//					dist = min(dist2,dist);
+//
+//#if DIAGNOSTIC == 1
+//					if(min(dist2,dist) == dist2)
+//						tablicaScien[i] = (&box->ContainerWallTable[j])->Id;
+//
+//#endif
+//				}
+
+//#if DIAGNOSTIC == 1
+//				wall = &box->ContainerWallTable[j];
+//#endif
+//				//printf("Sciana: %s,Sciana Start_X: %fSciana Start_Y: %f,Sciana End_X: %f,Sciana EndY: %f  Przecicie X: %f Y: %fDist: %f\n",wall->Id.c_str(),wall->From_X,wall->From_Y,wall->To_X,wall->To_Y, intersection.X,intersection.Y,dist2);
+//				//fflush(NULL);
+//			}
+
+//printf("End\n");
+
+//				if(dist > 0)
+//				{
+//					double scan = (((double) scanTable[i]) / 1000);
+//
+//
+//					if((scan < 0.05f) && (dist > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
+//						gauss =  Gauss2(scan,scan);
+//					else
+//						gauss =  Gauss2(dist,scan);
+//
+//#if DIAGNOSTIC == 1
+//					tablicaOdleglosci[i] = dist;
+//					tablicaKatow[i] = angleTable[i];
+//					tablicaSkan[i] = scan;
+//					tablicaGauss[i] = gauss;
+//#endif
+
+//					ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa++;
+//					sumProbability += gauss;
+//				}
+
+//int www;
+//	//		www= 112;
+//}
+
+
+/*for(int i = 0; i < length;i++)
+					{
+						printf("ID: %d Obliczone: %f Kat: %f Skan: %f Gaus: %fSciana: %s\n",i, tablicaOdleglosci[i],tablicaKatow[i],tablicaSkan[i],tablicaGauss[i],tablicaScien[i].c_str());
+
+						fflush(NULL);
+					}*/
+
+
+
+//			double yy = ((double) ilosc_pomiarow_uzytych_do_wyliczenia_prawdopdobienstwa) * Gauss2(1,1);
+//			Probability =  Normalize(sumProbability,0,yy);  //(sumProbability / index);  /// (length / PRZLIECZENIE_DLA_POMIARU_SKANERA)); //sumProbability
+//		}
+//
+//	};
 
 
 
@@ -1114,7 +1351,7 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 				{
 					double scan = (((double) scanTable[i]) / 1000);
 				gauss =  Gauss2(scan,dist); //exp((-1 * pow(scanTable[i] - dist,2)) / ( 2 * ODCHYLENIE * ODCHYLENIE)) / (2 * M_PI * ODCHYLENIE);
-				
+
 				sumProbability +=  gauss;//Normalize(gauss,0,dist); 
 				}
 			}
@@ -1122,8 +1359,8 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 
 		Probability = sumProbability;
 	}
-	*/
-		
+ */
+
 /*
 	inline void UpdateCountProbability1(Room* box,int scanTable[],double angleTable[],int length)
 	{
@@ -1160,7 +1397,7 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 				}*/
 
 
-				/*if((&box->ContainerWallTable[j])->From_X == (&box->ContainerWallTable[j])->To_X)
+/*if((&box->ContainerWallTable[j])->From_X == (&box->ContainerWallTable[j])->To_X)
 				{
 					int eee;
 
@@ -1175,11 +1412,11 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 
 		Probability = sumProbability;
 	}
-*/
+ */
 
 
-		
-		/*
+
+/*
 		double sumProbability = 0.0;
 		double X;
 		double Y;
@@ -1202,10 +1439,10 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 		alfa2 = tan(angleTable[i]);
 			b2 = this->Y - (alfa2 * this->Y);*/
 
-		//	X = (b2 - box->ContainerWall[j].B) / (box->ContainerWall[j].A - alfa2);			
-		//	Y = ((box->ContainerWall[j].A  * b2) - (alfa2 * box->ContainerWall[j].B)) / (box->ContainerWall[j].A - alfa2);
+//	X = (b2 - box->ContainerWall[j].B) / (box->ContainerWall[j].A - alfa2);
+//	Y = ((box->ContainerWall[j].A  * b2) - (alfa2 * box->ContainerWall[j].B)) / (box->ContainerWall[j].A - alfa2);
 
-		/*	W = alfa2 * box->ContainerWall[j].B + box->ContainerWall[j].A;
+/*	W = alfa2 * box->ContainerWall[j].B + box->ContainerWall[j].A;
 			Wx = b2 * box->ContainerWall[j].B + box->ContainerWall[j].C;
 			Wy = alfa2 * box->ContainerWall[j].C - box->ContainerWall[j].A * b2;
 
@@ -1214,20 +1451,20 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 				continue;
 			else*/
 
-			/*{
+/*{
 
 			X = Wx/W;
 			Y = Wy/W;*/
 
 
-			/*if((box->ContainerWall[j].From_X <= X <= box->ContainerWall[j].To_X) && (box->ContainerWall[j].From_Y <= Y <= box->ContainerWall[j].To_Y))
+/*if((box->ContainerWall[j].From_X <= X <= box->ContainerWall[j].To_X) && (box->ContainerWall[j].From_Y <= Y <= box->ContainerWall[j].To_Y))
 			{
 				dist =  getDistnace(&box->ContainerWall[j],angleTable[i],this->X,this->Y); //wartosc oczekiwana
-					
-					
+
+
 					//sqrt(( X - this->X ) * ( X - this->X ) + ( Y - this->Y ) * ( Y - this->Y )); //wartosc oczekiwana
 				gauss =  exp((-1 * pow(scanTable[i] - dist,2)) / ( 2 * ODCHYLENIE * ODCHYLENIE)) / (2 * M_PI * ODCHYLENIE);  
-				
+
 				sumProbability +=  Normalize(gauss,0,dist); 
 			}
 			else
@@ -1238,16 +1475,16 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 		}
 		Probability = sumProbability;
 
-		
+
 	}*/
 
 
 
-	//inline double Distance(Room* box)
-	//{
+//inline double Distance(Room* box)
+//{
 
 
-	//}
+//}
 
 /*	inline void ZaktualizujPrzesuniecie2(double wheelTrack,int frontRightSpeed, int  rearRightSpeed, int frontLeftSpeed, int rearLeftSpeed ,double time)
 	{
@@ -1369,8 +1606,8 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 
 		ZaktualizujPrzesuniecie(s,alfa);
 	}*/
-	
-	/*inline void ZaktualizujPrzesuniecie(double s,double  alfa)
+
+/*inline void ZaktualizujPrzesuniecie(double s,double  alfa)
 	{
 			X += s * cos((alfa * M_PI) / 180 ); // A'= [x + Sx, ...]
 			Y += s * cos(((90 - alfa) * M_PI) / 180); // A' [... ,y + Sy]
@@ -1382,23 +1619,23 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 //	inline void ObrotCzastkiKat(double alfaNew)
 //	{
 //		X = X * cos((alfaNew * M_PI) / 180) - Y * sin((alfaNew * M_PI) / 180);
-	//	Y = X * sin((alfaNew * M_PI) / 180) + Y * cos((alfaNew * M_PI) / 180);
+//	Y = X * sin((alfaNew * M_PI) / 180) + Y * cos((alfaNew * M_PI) / 180);
 
-	//	Alfa += alfaNew;
+//	Alfa += alfaNew;
 
 //	}
 
 
-	//const char* TransmitParticle(int index)
-	//{
-	//	stringstream temp; 
-	//	string tmp = "rrrrrrwwww";
-	//	//const char yy;
-	//	
-	//	temp << "#" << index << ";" << X << ";" << Y << ";" << Alfa << ";" << Probability << ";" << '\0';	
-	//	//tmp = temp.str();
+//const char* TransmitParticle(int index)
+//{
+//	stringstream temp;
+//	string tmp = "rrrrrrwwww";
+//	//const char yy;
+//
+//	temp << "#" << index << ";" << X << ";" << Y << ";" << Alfa << ";" << Probability << ";" << '\0';
+//	//tmp = temp.str();
 
-	//	//return tmp.c_str();
-	//	return tmp.c_str();
-	//}
+//	//return tmp.c_str();
+//	return tmp.c_str();
+//}
 

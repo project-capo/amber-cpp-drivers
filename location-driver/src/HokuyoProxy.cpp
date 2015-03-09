@@ -40,6 +40,7 @@ HokuyoProxy::HokuyoProxy(LoggerPtr logger,UdpClient *client_udp,unsigned int ski
 	angles = new double[ScanLengthAll];
 	distances = new int[ScanLengthAll];
 
+
 #endif
 
 #if TESTHOKU == 1
