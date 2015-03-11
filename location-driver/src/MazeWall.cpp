@@ -17,11 +17,34 @@ MazeWall::~MazeWall()
 	// TODO Auto-generated destructor stub
 }
 
-//bool MazeWall::operator < (const MazeWall& tmp) const
-//{
-//	if((this->To_X == tmp.From_X) && (this->To_Y == tmp.From_Y))
-//			return true;
-//		else
-//			return false;
-//}
+double MazeWall::Round(double dbVal)
+{
+    return dbVal;
+}
 
+void MazeWall::Calculate()
+{
+	if(From_Y ==  To_Y)
+	{
+		A = 0;
+		B = 1;
+		C = -1 * From_Y;
+	}
+	else if(From_X ==  To_X)
+	{
+		A = 1;
+		B = 0;
+		C = -1 *  From_X;
+	}
+	else
+	{
+
+	A = (From_Y - To_Y);
+	B = (To_X - From_X);
+	C =  (From_X * To_Y) - (From_Y * To_X);
+	}
+
+	A = Round(A);
+	B = Round(B);
+		C = Round(C);
+}

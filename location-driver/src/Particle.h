@@ -19,6 +19,7 @@ using std::string;
 #define ODCHYLENIE 0.3
 #define NEW_MIN 0
 #define NEW_MAX 1
+#define HISTEREZA 1.15
 
 
 struct Point
@@ -26,6 +27,7 @@ struct Point
 public:
 	double X;
 	double Y;
+	string WallName;
 };
 
 struct Line
@@ -535,6 +537,27 @@ public:
 		return temp;
 	}
 
+	inline Point calculateIntersectionGate(MazeWall *wall,double scan,double alfa,double X2,double Y2)
+	{
+		Point intersection = calculateIntersection(wall, alfa,X2, Y2);
+		double distance = calculateDistnace(X2,Y2,intersection.X,intersection.Y);
+
+		if(wall->IsGate)
+		{
+			if(scan > (HISTEREZA * distance)) //na wypadek gdy wyliczenie bylo mniejsze niz scan
+			{
+				Room* tempRoom = wall->NextRoom;
+				MazeWall *tempwall = getCurrentWall(tempRoom,alfa);
+
+				return calculateIntersectionGate(tempwall,scan,alfa,X2,Y2);
+			}
+			else
+				return intersection;
+		}
+		else
+			return intersection;
+
+	}
 
 	inline Point calculateIntersection(MazeWall *wall,double alfa,double X2,double Y2)
 	{
@@ -563,6 +586,8 @@ public:
 
 			temp.Y = Wy / W;
 			temp.Y = Round(temp.Y);
+
+			temp.WallName = wall->Id;
 		}
 		else
 			temp.X = temp.Y = -1;
@@ -1125,7 +1150,7 @@ public:
 		return (a * exp( pow(x - b,2) / (-2 * pow(c,2)))) + dd;
 	}
 
-	inline MazeWall* getCurrentWall(Room * room,double alfa)
+	inline MazeWall* getCurrentWall(Room * room,double alfa)  //uwzglednic zmiane kierunku
 	{
 		Point intersection;
 
@@ -1172,36 +1197,49 @@ public:
 				WallNameTable[i] = "";
 				GaussTable[i] =	CountDistance[i] = 0.0;
 
-				alfa = normalizeAlfa(this->Alfa + angleTable[i]);
-				intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
+				scan = (((double) scanTable[i]) / 1000); //pobranie odleglosci ze skanera
 
-				if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+				if((scan < 0.05f) && (distance > 5.6f)) //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
 				{
-
-					distance = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
-
-					scan = (((double) scanTable[i]) / 1000);
-
-					if((scan < 0.05f) && (distance > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
-						gauss =  Gauss2(scan,scan);
-					else
-						gauss =  Gauss2(distance,scan);
-
+					gauss =  Gauss2(scan,scan);
 					GaussTable[i] = gauss;
-					WallNameTable[i] = room->CurrentWall()->Id;
-					CountDistance[i] = distance;
-
-					sumProbability += gauss;
+					WallNameTable[i] = "out of Hokuyo range";
+					CountDistance[i] = 0.0;
 				}
 				else
 				{
-					room->GetNextWall();
-
 					alfa = normalizeAlfa(this->Alfa + angleTable[i]);
-					intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
 
-					if(!isIntersectionOK(room->CurrentWall(),alfa,intersection))
-						room->ChangeDirection();
+					if(room->CurrentWall()->IsGate)
+						intersection = calculateIntersectionGate(room->CurrentWall(),scan, alfa,this->X,this->Y);
+					else
+						intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y); //obliczenia przeciecia dla sciany
+
+					if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+					{
+						distance = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
+
+						//if((scan < 0.05f) && (distance > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
+						//	gauss =  Gauss2(scan,scan);
+						//else
+						gauss =  Gauss2(distance,scan);
+
+						GaussTable[i] = gauss;
+						WallNameTable[i] = intersection.WallName;
+						CountDistance[i] = distance;
+
+						sumProbability += gauss;
+					}
+					else
+					{
+						room->GetNextWall();
+
+						alfa = normalizeAlfa(this->Alfa + angleTable[i]);
+						intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
+
+						if(!isIntersectionOK(room->CurrentWall(),alfa,intersection))
+							room->ChangeDirection();
+					}
 				}
 			}
 

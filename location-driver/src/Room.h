@@ -63,12 +63,12 @@ public:  // do wywalenia
 	//przeniesc inicjalizacje gdy dodajemy nowe sciany
 	int ContainerWallCount();
 
-	void CreateContainerWall()
-	{
-		int iContainerWallCount = ContainerWall.size();
-		ContainerWallTable = new MazeWall[iContainerWallCount];
-		copy(ContainerWall.begin(),ContainerWall.end(),ContainerWallTable);
-	}
+	void CreateContainerWall();
+//	{
+//		int iContainerWallCount = ContainerWall.size();
+//		ContainerWallTable = new MazeWall[iContainerWallCount];
+//		copy(ContainerWall.begin(),ContainerWall.end(),ContainerWallTable);
+//	}
 //
 //
 

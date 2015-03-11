@@ -11,23 +11,23 @@
 #include <stdexcept>
 #include <string.h>
 
+class Room;
+
 using std::string;
 using namespace std;
 
 
-class MazeWall {
+class MazeWall
+{
 public:
 	MazeWall();
 	virtual ~MazeWall();
 
-	//static bool compareMyDataPredicate(MazeWall lhs, MazeWall rhs) { return true; }
-
-//	bool operator < (const MazeWall& tmp) const;
-
-
 public :
 
 	bool 	IsGate;
+	Room* NextRoom;
+
 	string 	Type;
 	string		Id;
 	double		Width;
@@ -42,38 +42,9 @@ public :
 	double B;
 	double C;
 
+	double Round(double dbVal);
 
-	inline double Round(double dbVal)
-	{
-	    return dbVal;
-	}
-
-	void Calculate()
-	{
-		if(From_Y ==  To_Y)
-		{
-			A = 0;
-			B = 1;
-			C = -1 * From_Y;
-		}
-		else if(From_X ==  To_X)
-		{
-			A = 1;
-			B = 0;
-			C = -1 *  From_X;
-		}
-		else
-		{
-
-		A = (From_Y - To_Y);
-		B = (To_X - From_X);
-		C =  (From_X * To_Y) - (From_Y * To_X);
-		}
-
-		A = Round(A);
-		B = Round(B);
- 		C = Round(C);
-	}
+	void Calculate();
 };
 
 #endif /* MAZEWALL_H_ */

@@ -118,6 +118,13 @@ void Room::ChangeDirection()
 	GetNextWall();
 }
 
+void Room::CreateContainerWall()
+{
+	int iContainerWallCount = ContainerWall.size();
+	ContainerWallTable = new MazeWall[iContainerWallCount];
+	copy(ContainerWall.begin(),ContainerWall.end(),ContainerWallTable);
+}
+
 ///*
 // *
 // *
