@@ -10,6 +10,7 @@
 MazeWall::MazeWall()
 {
 	IsGate = false;
+	NextRoom = NULL;
 }
 
 MazeWall::~MazeWall()

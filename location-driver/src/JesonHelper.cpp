@@ -295,8 +295,40 @@ int parseJasonFile(char *filename,Room* & rooms)
 
 	RoomsCount = GetRooms(allWalls,WallsCount,allSpaces,SpacesCount,allGate,GateCount,allSpacesGates,GatesSpacesCount,rooms);
 
+	associateRoom(rooms,RoomsCount);
+
 	cJSON_Delete(json);
 	free(data);
 	return RoomsCount;
 }
+
+void associateRoom(Room* rooms,int RoomsCount)
+{
+	for(int i = 0; i < RoomsCount;i++)
+	{
+		for(int j =0; j < rooms[i].walls.size(); j++)
+		{
+			if(rooms[i].walls[j].IsGate)
+			{
+				rooms[i].walls[j].NextRoom = bindRoomsWithGate(rooms,RoomsCount,&rooms[i],rooms[i].walls[j].Id);
+			}
+			else
+				continue;
+		}
+	}
+}
+
+Room* bindRoomsWithGate(Room* rooms,int RoomsCount,Room* currentRoom,string currentGateID)
+{
+	for(int i = 0; i < RoomsCount;i++)
+	{
+		for(int j =0; j < rooms[i].walls.size(); j++)
+		{
+			if((&rooms[i] != currentRoom) &&  (rooms[i].walls[j].Id == currentGateID))
+				return &rooms[i];
+		}
+	}
+	return NULL;
+}
+
 

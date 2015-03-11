@@ -48,6 +48,9 @@ int GetMazeGate(cJSON *json,MazeWall* & tableWalls);
 
 int GetMazeSpaces(cJSON *json,MazeSpaces* & tableSpaces);
 
+void associateRoom(Room* rooms,int RoomsCount);
+
+Room* bindRoomsWithGate(Room* rooms,int RoomsCount,Room* currentRoom,string currentGateID);
 
 
 #endif /* JESONHELPER_H_ */

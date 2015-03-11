@@ -10,23 +10,23 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	LOG4CXX_INFO(_logger, "Location");
 
 		/////// Test only
-
-		countRoomAndBox = parseJasonFile(mapPath,rooms);
-
-		string temp;
-
-		for(int i = 0; i <countRoomAndBox;i++)
-		{
-			temp = "";
-
-			for(int j = 0; j < rooms[i].walls.size();j++)
-			{
-				temp += rooms[i].walls[j].Id + " ; ";
-
-			}
-			printf("Room %s Sciany: %s\n",rooms[i].SpaceId.c_str(),temp.c_str());
-		}
-		fflush(NULL);
+//
+//		countRoomAndBox = parseJasonFile(mapPath,rooms);
+//
+//		string temp;
+//
+//		for(int i = 0; i <countRoomAndBox;i++)
+//		{
+//			temp = "";
+//
+//			for(int j = 0; j < rooms[i].walls.size();j++)
+//			{
+//				temp += rooms[i].walls[j].Id + " ; ";
+//
+//			}
+//			printf("Room %s Sciany: %s\n",rooms[i].SpaceId.c_str(),temp.c_str());
+//		}
+//		fflush(NULL);
 	/////
 
 	this->Pos_X = 0;
@@ -40,7 +40,7 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
-	amberUdp =  "192.168.2.204"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
+	amberUdp =  "192.168.2.206"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
 	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
@@ -164,6 +164,9 @@ void Location::RunLocation()
 
 			tablicaCzastek[i].UpdateCountProbability55(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
 
+			printf("%d\n",i);
+			fflush(NULL);
+
 //			for(int j = 0; j < skaner->ScanLength; j++)
 //			{
 //				printf("j: %d, Sican %s\n",j,tablicaCzastek[i].WallNameTable[j].c_str());
@@ -219,7 +222,7 @@ void Location::RunLocation()
 		//UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
 		//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
 
-		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
+		//UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
 
 #if DIAGNOSTIC == 1

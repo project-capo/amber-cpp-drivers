@@ -28,6 +28,7 @@ public:
 	double X;
 	double Y;
 	string WallName;
+	MazeWall* Wall;
 };
 
 struct Line
@@ -540,16 +541,23 @@ public:
 	inline Point calculateIntersectionGate(MazeWall *wall,double scan,double alfa,double X2,double Y2)
 	{
 		Point intersection = calculateIntersection(wall, alfa,X2, Y2);
-		double distance = calculateDistnace(X2,Y2,intersection.X,intersection.Y);
+		intersection.Wall = wall;
 
-		if(wall->IsGate)
+		if(isIntersectionOK(wall,alfa,intersection))
 		{
-			if(scan > (HISTEREZA * distance)) //na wypadek gdy wyliczenie bylo mniejsze niz scan
-			{
-				Room* tempRoom = wall->NextRoom;
-				MazeWall *tempwall = getCurrentWall(tempRoom,alfa);
+			double distance = calculateDistnace(X2,Y2,intersection.X,intersection.Y);
 
-				return calculateIntersectionGate(tempwall,scan,alfa,X2,Y2);
+			if(wall->IsGate)
+			{
+				if(scan > (HISTEREZA * distance)) //na wypadek gdy wyliczenie bylo mniejsze niz scan
+				{
+					Room* tempRoom = wall->NextRoom;
+					MazeWall *tempwall = getCurrentWall(tempRoom,alfa);
+
+					return calculateIntersectionGate(tempwall,scan,alfa,X2,Y2);
+				}
+				else
+					return intersection;
 			}
 			else
 				return intersection;
@@ -588,6 +596,7 @@ public:
 			temp.Y = Round(temp.Y);
 
 			temp.WallName = wall->Id;
+			temp.Wall = wall;
 		}
 		else
 			temp.X = temp.Y = -1;
@@ -1215,7 +1224,7 @@ public:
 					else
 						intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y); //obliczenia przeciecia dla sciany
 
-					if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+					if(isIntersectionOK(intersection.Wall,alfa,intersection))
 					{
 						distance = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
 
