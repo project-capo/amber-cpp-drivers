@@ -40,7 +40,7 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
-	amberUdp =  "192.168.2.206"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
+	amberUdp =  "192.168.2.202"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
 	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
@@ -125,6 +125,10 @@ void Location::RunLocation()
 	clientParticle->Send(wys,size);
 #endif
 
+//	skaner->GetScan();
+//			speedRoboClaw = roboClaw->GetSpeed(); //droga w metrach
+//			angleRoboClaw = roboClaw->GetAngle(deletaTime);
+
 	while(work)
 	{
 		gettimeofday(&end, NULL);
@@ -162,10 +166,12 @@ void Location::RunLocation()
 
 			//tablicaCzastek[i].UpdateCountProbability5(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
 
+//			printf("Particle: %d\n",i);
+//			fflush(NULL);
+
 			tablicaCzastek[i].UpdateCountProbability55(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
 
-			printf("%d\n",i);
-			fflush(NULL);
+
 
 //			for(int j = 0; j < skaner->ScanLength; j++)
 //			{
@@ -222,8 +228,11 @@ void Location::RunLocation()
 		//UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
 		//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
 
-		//UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
+		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
+
+		printf("Czas:%f[s]\n",deletaTime);
+		fflush(NULL);
 
 #if DIAGNOSTIC == 1
 		SendParticle(&diagnostic,tablicaCzastek);
@@ -314,10 +323,11 @@ void Location::InitTablicaCzastekLosowo(Particle *tablica,Room* room,int iCountB
 
 	for (unsigned int i = 0; i < NumberParticles; i++)
 	{
-		Particle *temp = new Particle(maxX,maxY);
-		temp->Losuj22();
+		tablica[i].maxX = maxX;
+		tablica[i].maxY = maxY;
 
-		tablica[i] = *temp;
+		tablica[i].Losuj22();
+
 	}
 }
 

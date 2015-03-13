@@ -29,6 +29,8 @@ public:
 	double Y;
 	string WallName;
 	MazeWall* Wall;
+	double Distance;
+	bool IsOK;
 };
 
 struct Line
@@ -552,7 +554,7 @@ public:
 				if(scan > (HISTEREZA * distance)) //na wypadek gdy wyliczenie bylo mniejsze niz scan
 				{
 					Room* tempRoom = wall->NextRoom;
-					MazeWall *tempwall = getCurrentWall(tempRoom,alfa);
+					MazeWall *tempwall = getCurrentWall(tempRoom,alfa,X2,Y2);
 
 					return calculateIntersectionGate(tempwall,scan,alfa,X2,Y2);
 				}
@@ -566,6 +568,45 @@ public:
 			return intersection;
 
 	}
+
+	inline Point calculateDistanceAndIntersection(MazeWall *wall,double scan,double alfa,double X2,double Y2)
+	{
+		Point intersection = calculateIntersection(wall, alfa,X2, Y2);
+		intersection.Distance = calculateDistnace(X2,Y2,intersection.X,intersection.Y);
+		intersection.Wall = wall;
+
+		if(isIntersectionOK(wall,alfa,intersection))
+		{
+			intersection.IsOK = true;
+
+			if(wall->IsGate)
+			{
+				if(scan < intersection.Distance)
+					return intersection;
+				else
+				{
+					Room* tempRoom = wall->NextRoom;
+					MazeWall *tempwall = getCurrentWall(tempRoom,alfa,X2,Y2,wall->Id);
+
+					if(tempwall == NULL)
+					{
+						intersection.IsOK = false;
+						return intersection;
+					}
+					else
+						return calculateDistanceAndIntersection(tempwall,scan,alfa,X2,Y2);
+				}
+			}
+			else
+				return intersection;
+		}
+		else
+		{
+			intersection.IsOK = false;
+			return intersection;
+		}
+	}
+
 
 	inline Point calculateIntersection(MazeWall *wall,double alfa,double X2,double Y2)
 	{
@@ -607,6 +648,11 @@ public:
 	inline double calculateDistnace(double X1,double Y1,double X2,double Y2)
 	{
 		return sqrt(pow(X1 - X2 ,2) + pow(Y1 - Y2,2));
+	}
+
+	inline double calculateDistnaceLine(double X0,double Y0,double A,double B,double C)
+	{
+		return (abs(A * X0 + B * Y0 + C) / (sqrt(pow(A,2)) + sqrt(pow(B,2))));
 	}
 
 	inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
@@ -1159,22 +1205,84 @@ public:
 		return (a * exp( pow(x - b,2) / (-2 * pow(c,2)))) + dd;
 	}
 
-	inline MazeWall* getCurrentWall(Room * room,double alfa)  //uwzglednic zmiane kierunku
+	//wyszukaj sciane gdy nie wiem ktora to jest
+	inline MazeWall* getCurrentWall(Room * room,double alfa,double X2,double Y2)
+	{
+		return getCurrentWall(room, alfa, X2, Y2,"");
+	}
+
+	//wyszukaj sciane ale znam ostatnia pozycje
+	inline MazeWall* getCurrentWall(Room * room,Point lastIntersection)
+	{
+		double distnaceToWallLeft, distanceToWallRight;
+		room->GetNextWall();
+		MazeWall *currentWall = room->CurrentWall();
+
+		distnaceToWallLeft = calculateDistnaceLine(lastIntersection.X,lastIntersection.Y,currentWall->A,currentWall->B,currentWall->C);
+
+		room->ChangeDirection();
+		currentWall = room->CurrentWall();
+
+		distanceToWallRight = calculateDistnaceLine(lastIntersection.X,lastIntersection.Y,currentWall->A,currentWall->B,currentWall->C);
+
+		if(distnaceToWallLeft < distanceToWallRight)
+		{
+			room->ChangeDirection();
+			return room->CurrentWall();
+		}
+		else
+			return room->CurrentWall();
+	}
+
+	//wyszukaj sciane ale pomin wyszczegolniona
+	inline MazeWall* getCurrentWall(Room * room,double alfa,double X2,double Y2,string skipWallId)
 	{
 		Point intersection;
 
 		for(unsigned int i = 0; i < room->walls.size(); i++)
 		{
-			intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
-
-			if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
-				return room->CurrentWall();
-			else
+			if(skipWallId ==  room->CurrentWall()->Id)
+			{
 				room->GetNextWall();
+				continue;
+			}
+			else
+			{
+				intersection = calculateIntersection(room->CurrentWall(),alfa,X2,Y2);
+
+				if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+					return room->CurrentWall();
+				else
+					room->GetNextWall();
+			}
 		}
 
 		return NULL;
+
 	}
+
+	//	inline MazeWall* getCurrentWall(Room * room,double alfa,double X2,double Y2)  //uwzglednic zmiane kierunku
+	//	{
+	//		Point intersection;
+	//
+	//		for(unsigned int i = 0; i < room->walls.size(); i++)
+	//		{
+	//			intersection = calculateIntersection(room->CurrentWall(),alfa,X2,Y2);
+	//
+	//			if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+	//				return room->CurrentWall();
+	//			else
+	//				room->GetNextWall();
+	//		}
+	//
+	//		return NULL;
+	//	}
+
+	//	inline MazeWall* getCurrentWall(Room * room,double alfa,Point intersection)
+	//	{
+	//
+	//
+	//	}
 
 	inline double normalizeAlfa(double alfa)
 	{
@@ -1197,12 +1305,15 @@ public:
 
 		Probability = 0.0;
 
-		MazeWall* currentWall = getCurrentWall(room,alfa);
+		MazeWall* currentWall = getCurrentWall(room,alfa,this->X,this->Y);
 
 		if(currentWall != NULL)
 		{
 			for(unsigned int i = 0; i < scanLength;i++)
 			{
+//				printf(" %d; ",i);
+//				fflush(NULL);
+
 				WallNameTable[i] = "";
 				GaussTable[i] =	CountDistance[i] = 0.0;
 
@@ -1218,36 +1329,30 @@ public:
 				else
 				{
 					alfa = normalizeAlfa(this->Alfa + angleTable[i]);
+					intersection = calculateDistanceAndIntersection(room->CurrentWall(),scan,alfa,this->X,this->Y);
 
-					if(room->CurrentWall()->IsGate)
-						intersection = calculateIntersectionGate(room->CurrentWall(),scan, alfa,this->X,this->Y);
-					else
-						intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y); //obliczenia przeciecia dla sciany
-
-					if(isIntersectionOK(intersection.Wall,alfa,intersection))
+					if(intersection.IsOK)
 					{
-						distance = calculateDistnace(this->X,this->Y,intersection.X,intersection.Y);
-
-						//if((scan < 0.05f) && (distance > 5.6f))  //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
-						//	gauss =  Gauss2(scan,scan);
-						//else
-						gauss =  Gauss2(distance,scan);
+						gauss =  Gauss2(intersection.Distance,scan);
 
 						GaussTable[i] = gauss;
 						WallNameTable[i] = intersection.WallName;
-						CountDistance[i] = distance;
+						CountDistance[i] = intersection.Distance;
 
 						sumProbability += gauss;
 					}
 					else
 					{
-						room->GetNextWall();
+						getCurrentWall(room,intersection);
 
-						alfa = normalizeAlfa(this->Alfa + angleTable[i]);
-						intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
-
-						if(!isIntersectionOK(room->CurrentWall(),alfa,intersection))
-							room->ChangeDirection();
+						//
+						//						room->GetNextWall();
+						//
+						//						alfa = normalizeAlfa(this->Alfa + angleTable[i]);
+						//						intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
+						//
+						//						if(!isIntersectionOK(room->CurrentWall(),alfa,intersection))
+						//							room->ChangeDirection();
 					}
 				}
 			}
