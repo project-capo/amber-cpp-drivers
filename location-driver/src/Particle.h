@@ -1205,6 +1205,27 @@ public:
 		return (a * exp( pow(x - b,2) / (-2 * pow(c,2)))) + dd;
 	}
 
+
+	inline double Gauss3(double prop,double real)
+	{
+	double delta = 0.4;
+
+	double deltaSqur2PI = sqrt(M_PI2);
+	deltaSqur2PI *= delta;
+	deltaSqur2PI = 1 / deltaSqur2PI;
+
+
+	double mianownik2deltaPow2 = pow(delta,2);
+	mianownik2deltaPow2 *= -2;
+
+	double propMINUSrealPow2 = pow(prop - real,2);
+
+	double result =  deltaSqur2PI * exp(propMINUSrealPow2 / mianownik2deltaPow2);
+
+	return result;
+
+	}
+
 	//wyszukaj sciane gdy nie wiem ktora to jest
 	inline MazeWall* getCurrentWall(Room * room,double alfa,double X2,double Y2)
 	{
@@ -1321,7 +1342,7 @@ public:
 
 				if((scan < 0.05f) && (distance > 5.6f)) //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
 				{
-					gauss =  Gauss2(scan,scan);
+					gauss =  Gauss3(scan,scan);
 					GaussTable[i] = gauss;
 					WallNameTable[i] = "out of Hokuyo range";
 					CountDistance[i] = 0.0;
@@ -1333,7 +1354,7 @@ public:
 
 					if(intersection.IsOK)
 					{
-						gauss =  Gauss2(intersection.Distance,scan);
+						gauss =  Gauss3(intersection.Distance,scan);
 
 						GaussTable[i] = gauss;
 						WallNameTable[i] = intersection.WallName;
@@ -1357,7 +1378,7 @@ public:
 				}
 			}
 
-			Probability =  Normalize(sumProbability,0, ((double) scanLength) * Gauss2(1,1));
+			Probability =  Normalize(sumProbability,0, ((double) scanLength) * Gauss3(1,1));
 		}
 	}
 };

@@ -40,7 +40,7 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
-	amberUdp =  "192.168.2.202"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
+	amberUdp =  "192.168.2.206"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
 	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
@@ -175,9 +175,15 @@ void Location::RunLocation()
 
 //			for(int j = 0; j < skaner->ScanLength; j++)
 //			{
-//				printf("j: %d, Sican %s\n",j,tablicaCzastek[i].WallNameTable[j].c_str());
+//				printf("%d;%d;%s;%f;%f;%f;\n",i,j,tablicaCzastek[i].WallNameTable[j].c_str(),
+//												  tablicaCzastek[i].GaussTable[j],
+//												  tablicaCzastek[i].CountDistance[j],
+//												  (double) skaner->Distance(j) / 1000);
 //
 //			}
+//
+//			printf("\n");
+//
 //
 //			fflush(NULL);
 
@@ -231,8 +237,8 @@ void Location::RunLocation()
 		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
 
-		printf("Czas:%f[s]\n",deletaTime);
-		fflush(NULL);
+//		printf("Czas:%f[s]\n",deletaTime);
+//		fflush(NULL);
 
 #if DIAGNOSTIC == 1
 		SendParticle(&diagnostic,tablicaCzastek);
