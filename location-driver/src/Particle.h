@@ -1233,7 +1233,7 @@ public:
 	}
 
 	//wyszukaj sciane ale znam ostatnia pozycje
-	inline MazeWall* getCurrentWall(Room * room,Point lastIntersection)
+	inline MazeWall* getCurrentWall(Room * room,Point lastIntersection) //bug w metodzie przechodzenia
 	{
 		double distnaceToWallLeft, distanceToWallRight;
 		room->GetNextWall();

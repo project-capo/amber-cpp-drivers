@@ -9,32 +9,25 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	_logger = logger;
 	LOG4CXX_INFO(_logger, "Location");
 
-	saveToFile("/home/szsz/log.csv","test");
+		///// Test only
 
-	saveToFile("/home/szsz/log.csv","test1");
+		countRoomAndBox = parseJasonFile(mapPath,rooms);
 
-	saveToFile("/home/szsz/log.csv","test2");
+		string temp;
 
+		for(int i = 0; i <countRoomAndBox;i++)
+		{
+			temp = "";
 
-		/////// Test only
-//
-//		countRoomAndBox = parseJasonFile(mapPath,rooms);
-//
-//		string temp;
-//
-//		for(int i = 0; i <countRoomAndBox;i++)
-//		{
-//			temp = "";
-//
-//			for(int j = 0; j < rooms[i].walls.size();j++)
-//			{
-//				temp += rooms[i].walls[j].Id + " ; ";
-//
-//			}
-//			printf("Room %s Sciany: %s\n",rooms[i].SpaceId.c_str(),temp.c_str());
-//		}
-//		fflush(NULL);
-	/////
+			for(int j = 0; j < rooms[i].walls.size();j++)
+			{
+				temp += rooms[i].walls[j].Id + " ; ";
+
+			}
+			printf("Room %s Sciany: %s\n",rooms[i].SpaceId.c_str(),temp.c_str());
+		}
+		fflush(NULL);
+	///
 
 	this->Pos_X = 0;
 	this->Pos_Y = 0;
@@ -105,6 +98,10 @@ void Location::RunLocation()
 {
 	LOG4CXX_INFO(_logger, "RunLocation");
 
+	ofstream myfile;
+
+
+
 	/*
 	string selectedRooms[] = {"Space689","Space1384","Space762"};
 	string selectedRooms[] = {"Space2310","Space2337","Space2228"};
@@ -138,6 +135,8 @@ void Location::RunLocation()
 
 	while(work)
 	{
+		myfile.open("/home/szsz/log.csv",ios::app);
+
 		gettimeofday(&end, NULL);
 		deletaTime = ((end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec)/1000.0) / 1000;
 		gettimeofday(&start, NULL);
@@ -178,12 +177,38 @@ void Location::RunLocation()
 
 			tablicaCzastek[i].UpdateCountProbability55(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
 
+			//string ss;
 
 
 
-//			for(int j = 0; j < skaner->ScanLength; j++)
-//			{
-//				printf("%d;%d;%s;%f;%f;%f;\n",i,j,tablicaCzastek[i].WallNameTable[j].c_str(),
+
+
+			for(int j = 0; j < skaner->ScanLength; j++)
+			{
+				 myfile << i << ";" << j << ";" << tablicaCzastek[i].WallNameTable[j] + ";" << tablicaCzastek[i].GaussTable[j] << ";" <<
+				 		   tablicaCzastek[i].CountDistance[j] << ";" << ((double) skaner->Distance(j) / 1000) << ";" <<  ((double) tablicaCzastek[i].CountDistance[j] -  ((double) skaner->Distance(j) / 1000))  << ";" << "\n";
+
+				 myfile.flush();
+			}
+//
+//				ss.clear();
+//				ss +=  tablicaCzastek[i].WallNameTable[j] + ";";
+//				ss += tablicaCzastek[i].GaussTable[j];
+//				ss += ";";
+//				ss += tablicaCzastek[i].CountDistance[j];
+//				ss += ";";
+//				ss += ((double) skaner->Distance(j) / 1000);
+//				ss += ";";
+//				ss += "\n";
+//
+//
+//
+//				saveToFile("/home/szsz/log.csv",ss);
+//			}
+
+
+
+				//				printf("%d;%d;%s;%f;%f;%f;\n",i,j,tablicaCzastek[i].WallNameTable[j].c_str(),
 //												  tablicaCzastek[i].GaussTable[j],
 //												  tablicaCzastek[i].CountDistance[j],
 //												  (double) skaner->Distance(j) / 1000);
@@ -242,7 +267,7 @@ void Location::RunLocation()
 		//UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
 		//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
 
-		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
+		//UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
 
 //		printf("Czas:%f[s]\n",deletaTime);
@@ -257,7 +282,11 @@ void Location::RunLocation()
 		//printf("Czas:%f[s]\n",deletaTime);
 		//fflush(NULL);
 #endif
+
+		 myfile.close();
 	}
+
+
 }
 
 void Location::RozmiescCzastki(Room* bbBox,unsigned int BoundingBoxCount,Particle* ttablicaCzastek,unsigned int ParticleCount)
