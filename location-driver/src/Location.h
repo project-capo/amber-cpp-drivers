@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sstream>
+#include <fstream>
+#include <iostream>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -99,6 +101,7 @@ private:
 
 	/////// Diagnostic ////////////////
 
+	void saveToFile(string sFilePath,string sData);
 
 	int GetSelectedRooms(Room* & bbBox,int length,string selectedRooms[],int selectedRoomsCount);
 #if DIAGNOSTIC == 1

@@ -9,6 +9,13 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	_logger = logger;
 	LOG4CXX_INFO(_logger, "Location");
 
+	saveToFile("/home/szsz/log.csv","test");
+
+	saveToFile("/home/szsz/log.csv","test1");
+
+	saveToFile("/home/szsz/log.csv","test2");
+
+
 		/////// Test only
 //
 //		countRoomAndBox = parseJasonFile(mapPath,rooms);
@@ -170,6 +177,7 @@ void Location::RunLocation()
 //			fflush(NULL);
 
 			tablicaCzastek[i].UpdateCountProbability55(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
+
 
 
 
@@ -748,3 +756,11 @@ char* Location::getRobotIPAdress()
 	return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
 }
 
+
+void Location::saveToFile(string sFilePath,string sData)
+{
+	ofstream myfile;
+	  myfile.open(sFilePath.c_str(),ios::app);
+	  myfile << sData;
+	  myfile.close();
+}
