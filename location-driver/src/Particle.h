@@ -650,9 +650,12 @@ public:
 		return sqrt(pow(X1 - X2 ,2) + pow(Y1 - Y2,2));
 	}
 
-	inline double calculateDistnaceLine(double X0,double Y0,double A,double B,double C)
+	inline double calculateDistnacePoitAndWall(double X0,double Y0,MazeWall* wall)
 	{
-		return (abs(A * X0 + B * Y0 + C) / (sqrt(pow(A,2)) + sqrt(pow(B,2))));
+		double distanceA = sqrt(pow((X0 - wall->From_X),2) + pow((Y0-wall->From_Y),2));
+		double distanceB = sqrt(pow((X0 - wall->To_X),2) + pow((Y0-wall->To_Y),2));
+
+		return min(distanceA,distanceB);
 	}
 
 	inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
@@ -1239,12 +1242,12 @@ public:
 		room->GetNextWall();
 		MazeWall *currentWall = room->CurrentWall();
 
-		distnaceToWallLeft = calculateDistnaceLine(lastIntersection.X,lastIntersection.Y,currentWall->A,currentWall->B,currentWall->C);
+		distnaceToWallLeft = calculateDistnacePoitAndWall(lastIntersection.X,lastIntersection.Y,currentWall);
 
 		room->ChangeDirection();
 		currentWall = room->CurrentWall();
 
-		distanceToWallRight = calculateDistnaceLine(lastIntersection.X,lastIntersection.Y,currentWall->A,currentWall->B,currentWall->C);
+		distanceToWallRight = calculateDistnacePoitAndWall(lastIntersection.X,lastIntersection.Y,currentWall);
 
 		if(distnaceToWallLeft < distanceToWallRight)
 		{
