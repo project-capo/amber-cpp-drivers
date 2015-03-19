@@ -9,25 +9,25 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	_logger = logger;
 	LOG4CXX_INFO(_logger, "Location");
 
-		///// Test only
-
-		countRoomAndBox = parseJasonFile(mapPath,rooms);
-
-		string temp;
-
-		for(int i = 0; i <countRoomAndBox;i++)
-		{
-			temp = "";
-
-			for(int j = 0; j < rooms[i].walls.size();j++)
-			{
-				temp += rooms[i].walls[j].Id + " ; ";
-
-			}
-			printf("Room %s Sciany: %s\n",rooms[i].SpaceId.c_str(),temp.c_str());
-		}
-		fflush(NULL);
-	///
+//		///// Test only
+//
+//		countRoomAndBox = parseJasonFile(mapPath,rooms);
+//
+//		string temp;
+//
+//		for(int i = 0; i <countRoomAndBox;i++)
+//		{
+//			temp = "";
+//
+//			for(int j = 0; j < rooms[i].walls.size();j++)
+//			{
+//				temp += rooms[i].walls[j].Id + " ; ";
+//
+//			}
+//			printf("Room %s Sciany: %s\n",rooms[i].SpaceId.c_str(),temp.c_str());
+//		}
+//		fflush(NULL);
+//	///
 
 	this->Pos_X = 0;
 	this->Pos_Y = 0;
@@ -40,7 +40,7 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
-	amberUdp =  "192.168.2.206"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
+	amberUdp =  getRobotIPAdress(); //"192.168.2.206"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
 	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
@@ -110,8 +110,8 @@ void Location::RunLocation()
 	countRoomAndBox = GetSelectedRooms(rooms,countRoomAndBox,selectedRooms,countSelectedRooms);
 	 */
 
-	RozmiescCzastki(rooms,countRoomAndBox,tablicaCzastek,NumberParticles);
-	//InitTablicaCzastekLosowo(tablicaCzastek,rooms,countRoomAndBox);
+	//RozmiescCzastki(rooms,countRoomAndBox,tablicaCzastek,NumberParticles);
+	InitTablicaCzastekLosowo(tablicaCzastek,rooms,countRoomAndBox);
 
 #if DIAGNOSTIC == 1
 	SendParticle(&diagnostic,tablicaCzastek);
@@ -183,13 +183,13 @@ void Location::RunLocation()
 
 
 
-			for(int j = 0; j < skaner->ScanLength; j++)
-			{
-				 myfile << i << ";" << j << ";" << tablicaCzastek[i].WallNameTable[j] + ";" << tablicaCzastek[i].GaussTable[j] << ";" <<
-				 		   tablicaCzastek[i].CountDistance[j] << ";" << ((double) skaner->Distance(j) / 1000) << ";" <<  ((double) tablicaCzastek[i].CountDistance[j] -  ((double) skaner->Distance(j) / 1000))  << ";" << "\n";
-
-				 myfile.flush();
-			}
+//			for(int j = 0; j < skaner->ScanLength; j++)
+//			{
+//				 myfile << i << ";" << j << ";" << tablicaCzastek[i].WallNameTable[j] + ";" << tablicaCzastek[i].GaussTable[j] << ";" <<
+//				 		   tablicaCzastek[i].CountDistance[j] << ";" << ((double) skaner->Distance(j) / 1000) << ";" <<  ((double) tablicaCzastek[i].CountDistance[j] -  ((double) skaner->Distance(j) / 1000))  << ";" << "\n";
+//
+//				 myfile.flush();
+//			}
 //
 //				ss.clear();
 //				ss +=  tablicaCzastek[i].WallNameTable[j] + ";";
@@ -267,7 +267,7 @@ void Location::RunLocation()
 		//UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
 		//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
 
-		//UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
+		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
 
 //		printf("Czas:%f[s]\n",deletaTime);
