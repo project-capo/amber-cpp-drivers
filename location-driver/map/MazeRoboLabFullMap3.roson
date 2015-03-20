@@ -232,11 +232,11 @@
       "height": 0.3,
       "color": "ff000000",
       "from": {
-        "x": 0.0,
+        "x": 0.00,
         "y": 1.38
       },
       "to": {
-        "x": 0.0,
+        "x": 0.00,
         "y": 2.5
       }
     },
@@ -262,11 +262,11 @@
       "height": 0.3,
       "color": "ff000000",
       "from": {
-        "x": 0.0,
+        "x": 0.00,
         "y": 3.26
       },
       "to": {
-        "x": 0.0,
+        "x": 0.00,
         "y": 4.9
       }
     },
@@ -277,7 +277,7 @@
       "height": 0.3,
       "color": "ff000000",
       "from": {
-        "x": 0.0,
+        "x": 0.00,
         "y": 4.9
       },
       "to": {
@@ -401,21 +401,148 @@
         "y": 0.0
       },
       "to": {
-        "x": 0.0,
+        "x": 0.00,
         "y": 1.38
       }
     }
   ],
-  "gates": [],
-  "spaces": [],
-  "nodes": [],
   "robots": [],
   "victims": [],
-  "space-walls": [],
-  "space-gates": [],
-  "space-nodes": [],
-  "space-robots": [],
-  "space-victims": [],
-  "gate-nodes": [],
-  "node-nodes": []
+  "space-walls": [
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall487"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall491"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall493"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall494"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall495"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall496"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall504"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall505"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall507"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall509"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall558"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall559"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall560"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall569"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall519"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall577"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall578"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall581"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall550"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall593"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall594"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall595"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall521"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall527"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall528"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall529"
+    },
+    {
+      "type": "space-wall",
+      "spaceId": "Space497",
+      "wallId": "Wall538"
+    }
+  ]
 }
