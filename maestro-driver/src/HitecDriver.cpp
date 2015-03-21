@@ -90,6 +90,22 @@ void HitecDriver::setAngle(unsigned int servo_address, int angle) throw (HitecSe
 	}
 }
 
+void HitecDriver::setSpeed(unsigned int servo_address, int speed) throw (HitecSerialException) {
+	scoped_lock<interprocess_mutex> lock(serialPortMutex);
+
+	while (!driverReady) {
+		driverIsNotReady.wait(lock);
+	}
+
+	if (_logger->isDebugEnabled()) {
+		LOG4CXX_DEBUG(_logger, "ht_set_speed, sa: " << servo_address << ", s: " << speed);
+	}
+
+	if (ht_set_speed(_fd, servo_address, speed) < 0) {
+		LOG4CXX_WARN(_logger, "ht_set_speed, sa: " << servo_address << ", s: " << speed << ": error");
+	}
+}
+
 void HitecDriver::setSameAngle(unsigned int *servo_addresses, int servo_count, int angle) throw (HitecSerialException) {
 	scoped_lock<interprocess_mutex> lock(serialPortMutex);
 

@@ -44,7 +44,7 @@ private:
 	void handleSetAngleCommand(amber::hitec_proto::SetAngle *setAngleCommand);
 	void handleSetSameAngleCommand(amber::hitec_proto::SetSameAngle *setSameAngleCommand);
 	void handleSetDifferentAngleCommand(amber::hitec_proto::SetDifferentAngles *setDifferentAnglesCommand);
-
+	void handleSetSpeedCommand(amber::hitec_proto::SetSpeed *setSpeedCommand);
 	void parseConfigurationFile(const char *filename);
 
 	void handleClientDiedMsg(int clientID);
