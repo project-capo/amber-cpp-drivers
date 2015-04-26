@@ -8,6 +8,7 @@ extend amber.DriverMsg {
     optional SetAngle setAngleCommand = 70;
     optional SetSameAngle setSameAngleCommand = 71;
     optional SetDifferentAngles setDifferentAnglesCommand = 72;
+    optional SetSpeed setSpeedCommand = 73;
 }
 
 message SetAngle {
@@ -23,4 +24,9 @@ message SetSameAngle {
 message SetDifferentAngles {
     repeated uint32 servoAddresses = 1 [packed=true];
     repeated int32 angles = 2 [packed=true];
+}
+
+message SetSpeed {
+    required uint32 servoAddress = 1;
+    required int32 speed = 2;
 }

@@ -40,14 +40,16 @@ void HitecController::handleDataMsg(amber::DriverHdr *driverHdr, amber::DriverMs
     if (_logger->isDebugEnabled()) {
         LOG4CXX_DEBUG(_logger, "Message came");
     }
-
     if (driverMsg->HasExtension(hitec_proto::setAngleCommand)) {
     	handleSetAngleCommand(driverMsg->MutableExtension(hitec_proto::setAngleCommand));
     } else if (driverMsg->HasExtension(hitec_proto::setSameAngleCommand)) {
         handleSetSameAngleCommand(driverMsg->MutableExtension(hitec_proto::setSameAngleCommand));
     } else if(driverMsg->HasExtension(hitec_proto::setDifferentAnglesCommand)) {
     	handleSetDifferentAngleCommand(driverMsg->MutableExtension(hitec_proto::setDifferentAnglesCommand));
-    } else {
+    } else if(driverMsg->HasExtension(hitec_proto::setSpeedCommand)) {
+    	handleSetSpeedCommand(driverMsg->MutableExtension(hitec_proto::setSpeedCommand));
+    }
+	else {
     	throw new HitecUnsupportedCommandException();
     }
 }
@@ -65,6 +67,23 @@ void HitecController::handleSetAngleCommand(hitec_proto::SetAngle *setAngleComma
     		_hitecDriver->setAngle(servo_address, angle);
 		} catch (HitecSerialException &e) {
 			LOG4CXX_WARN(_logger, "Serial connection error in HitecDriver.setAngle(...).");
+		}
+    }
+}
+
+void HitecController::handleSetSpeedCommand(hitec_proto::SetSpeed *setSpeedCommand) {
+    if (_logger->isDebugEnabled()) {
+        LOG4CXX_DEBUG(_logger, "Handling setSpeedCommand message");
+    }
+
+    unsigned int servo_address = setSpeedCommand->servoaddress();
+    unsigned int speed = setSpeedCommand->speed();
+
+    if(!_hitecDisabled) {
+    	try {
+    		_hitecDriver->setSpeed(servo_address, speed);
+		} catch (HitecSerialException &e) {
+			LOG4CXX_WARN(_logger, "Serial connection error in HitecDriver.setSpeed(...).");
 		}
     }
 }
