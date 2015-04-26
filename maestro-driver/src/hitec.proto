@@ -8,7 +8,7 @@ extend amber.DriverMsg {
     optional SetAngle setAngleCommand = 70;
     optional SetSameAngle setSameAngleCommand = 71;
     optional SetDifferentAngles setDifferentAnglesCommand = 72;
-	optional SetSpeed setSpeedCommand = 73;
+    optional SetSpeed setSpeedCommand = 73;
 }
 
 message SetAngle {
