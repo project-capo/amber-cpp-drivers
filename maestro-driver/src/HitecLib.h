@@ -12,10 +12,13 @@ int ht_uart_flush_input(int fd);
 int ht_uart_close(int fd);
 
 int ht_set_angle(int fd, unsigned int servo_address, int angle);
+int ht_set_speed(int fd, unsigned int servo_address, int speed);
 int ht_set_same_angle(int fd, unsigned int *servo_addresses, int servo_count, int angle);
 int ht_set_different_angles(int fd, unsigned int *servo_addresses, int servo_count, int *angles);
 
 int ht_check_angle(int angle);
+int ht_check_speed(int speed);
 void ht_prepare_command(int angle, __u8 *buffer);
+void ht_prepare_command_speed(int angle, __u8 *buffer);
 
 #endif

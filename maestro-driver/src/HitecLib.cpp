@@ -95,6 +95,24 @@ int ht_set_angle(int fd, unsigned int servo_address, int angle) {
 	return 0;
 }
 
+int ht_set_speed(int fd, unsigned int servo_address, int speed) {
+	if(ht_check_speed(speed) < 0) {
+		return -1;
+	}
+
+	const ssize_t command_size = 4;
+
+    __u8 buffer[command_size];
+    ht_prepare_command_speed(speed, buffer);
+    buffer[1] = static_cast<__u8>(servo_address & 0xFF);
+
+    if (ht_uart_write(fd, command_size, buffer) != command_size) {
+    	return -1;
+	}
+
+	return 0;
+}
+
 int ht_set_same_angle(int fd, unsigned int *servo_addresses, int servo_count, int angle) {
 	if(ht_check_angle(angle) < 0) {
 		return -1;
@@ -150,8 +168,29 @@ void ht_prepare_command(int angle, __u8 *buffer) {
     buffer[3] = data_byte_II;
 }
 
+void ht_prepare_command_speed(int speed, __u8 *buffer) {
+
+
+	int data_value = speed;
+
+	const __u8 command_byte = 0x87;
+	const __u8 data_byte_I = data_value & 0x7F;
+	const __u8 data_byte_II = data_value >> 7 & 0x7F;
+
+    buffer[0] = command_byte;
+    buffer[2] = data_byte_I;
+    buffer[3] = data_byte_II;
+}
+
 int ht_check_angle(int angle) {
-	if(angle > 90 || angle < -90) {
+	if(angle > 180 || angle < 0) {
+		return -1;
+	}
+
+	return 0;
+}
+int ht_check_speed(int speed) {
+	if(speed > 255 || speed < 0) {
 		return -1;
 	}
 

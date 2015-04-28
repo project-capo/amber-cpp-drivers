@@ -16,6 +16,7 @@ public:
 
 	void initializeDriver();
 	void setAngle(unsigned int servo_address, int angle) throw (HitecSerialException);
+	void setSpeed(unsigned int servo_address, int speed) throw (HitecSerialException);
 	void setSameAngle(unsigned int *servo_addresses, int servo_count, int angle) throw (HitecSerialException);
 	void setDifferentAngles(unsigned int *servo_addresses, int servo_count, int *angles) throw (HitecSerialException);
 
