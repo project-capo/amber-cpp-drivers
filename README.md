@@ -1,7 +1,7 @@
 amber-cpp-drivers
 =================
 
-[![Build Status](https://travis-ci.org/project-capo/amber-cpp-clients.svg?branch=master)](https://travis-ci.org/project-capo/amber-cpp-clients)
+[![Build Status](https://travis-ci.org/project-capo/amber-cpp-drivers.svg?branch=master)](https://travis-ci.org/project-capo/amber-cpp-drivers)
 
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/4014/badge.svg?style=flat)](https://scan.coverity.com/projects/4014)
 
