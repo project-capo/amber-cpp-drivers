@@ -55,8 +55,6 @@ struct RoboclawConfiguration {
 	__u32 stop_idle_timeout;
 	__u32 reset_idle_timeout;
 
-	__u32 current_speed_interval;
-
 };
 
 class RoboclawSerialException: public std::exception {

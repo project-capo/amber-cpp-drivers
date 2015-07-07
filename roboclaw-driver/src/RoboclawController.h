@@ -43,7 +43,6 @@ private:
 	boost::thread *_errorMonitorThread;
 	boost::thread *_temperatureMonitorThread;
 	boost::thread *_timeoutMonitorThread;
-	boost::thread *_currentSpeedMonitorThread;
 
 	boost::interprocess::interprocess_mutex _timeoutsMutex;
 	boost::system_time _motorsStopTime;
@@ -64,14 +63,10 @@ private:
 	void errorMonitor();
 	void temperatureMonitor();
 	void timeoutMonitor();
-	void currentSpeedMonitor();
 
 	std::string getErorDescription(__u8 errorStatus);
 	int toQpps(int in);
 	int toMmps(int in);
-
-	MotorsSpeedStruct currntSpeed;
-	long long currentSpeedTimeStamp;
 
 };
 
