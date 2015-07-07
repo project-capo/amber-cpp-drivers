@@ -26,7 +26,8 @@ public:
 	RoboclawController(int pipeInFd, int pipeOutFd, const char *confFilename);
 	virtual ~RoboclawController();
 
-	void handleDataMsg(amber::DriverHdr *driverHdr, amber::DriverMsg *driverMsg);
+	void handleDataMsg(amber::DriverHdr *driverHdr,
+			amber::DriverMsg *driverMsg);
 	void handleClientDiedMsg(int clientID);
 	void operator()();
 
@@ -43,6 +44,7 @@ private:
 	boost::thread *_errorMonitorThread;
 	boost::thread *_temperatureMonitorThread;
 	boost::thread *_timeoutMonitorThread;
+	boost::thread *_commendMonitorThread;
 
 	boost::interprocess::interprocess_mutex _timeoutsMutex;
 	boost::system_time _motorsStopTime;
@@ -54,7 +56,8 @@ private:
 	amber::DriverMsg *buildCurrentSpeedMsg();
 	void sendCurrentSpeedMsg(int receiver, int ackNum);
 	void handleCurrentSpeedRequest(int sender, int synNum);
-	void handleMotorsEncoderCommand(amber::roboclaw_proto::MotorsSpeed *motorsCommand);
+	void handleMotorsEncoderCommand(
+			amber::roboclaw_proto::MotorsSpeed *motorsCommand);
 	void parseConfigurationFile(const char *filename);
 	void resetAndWait();
 	void resetTimeouts();
@@ -68,7 +71,16 @@ private:
 	int toQpps(int in);
 	int toMmps(int in);
 
-};
+	MotorsSpeedStruct sendRoboClawSpeed;
+	MotorsSpeedStruct readRoboClawSpeed;
 
+	void commendMonitor();
+
+	/*int currentFrontLeftSpeed;
+	int currentFrontRightSpeed;
+	int currentRearLeftSpeed;
+	int currentRearRightSpeed;*/
+
+};
 
 #endif /* STARGAZERCONTROLLER_H_ */
