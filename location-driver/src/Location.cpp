@@ -9,26 +9,6 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	_logger = logger;
 	LOG4CXX_INFO(_logger, "Location");
 
-//		///// Test only
-//
-//		countRoomAndBox = parseJasonFile(mapPath,rooms);
-//
-//		string temp;
-//
-//		for(int i = 0; i <countRoomAndBox;i++)
-//		{
-//			temp = "";
-//
-//			for(int j = 0; j < rooms[i].walls.size();j++)
-//			{
-//				temp += rooms[i].walls[j].Id + " ; ";
-//
-//			}
-//			printf("Room %s Sciany: %s\n",rooms[i].SpaceId.c_str(),temp.c_str());
-//		}
-//		fflush(NULL);
-//	///
-
 	this->Pos_X = 0;
 	this->Pos_Y = 0;
 	this->Prop = 0;
@@ -40,14 +20,14 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	clientParticle = new UdpClient(IPPart,1234); //wizualizacja
 #endif
 
-	amberUdp =  getRobotIPAdress(); //"192.168.2.206"; //getRobotIPAdress(); //przerobic aby bral lokalny adres z robota
+	amberUdp =  "192.168.2.202";//robotIPAdress(); //przerobic aby bral lokalny adres z robota
 	clinetAmber = new UdpClient(amberUdp,26233);
 	LOG4CXX_INFO(_logger, "After: clinetAmber UdpClient");
 
 	srand(10);
 
-	LOG4CXX_INFO(_logger, "Before: parseJasonFile");
-	countRoomAndBox = parseJasonFile(mapPath,rooms);
+    LOG4CXX_INFO(_logger, "Before: parseJasonFile");
+	countRoomAndBox = parseJasonFile(mapPath,bBox,rooms);
 	LOG4CXX_INFO(_logger, "After: parseJasonFile");
 
 	/*for(int i = 0; i <rooms[0].ContainerWallCount(); i++)
@@ -58,21 +38,24 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 
 	}*/
 
+	NumberParticles = numberParticles;
+	tablicaCzastek = new Particle[NumberParticles];
+
+	iloscCzastekDoUsuniacia = 0;
+
 	roboClaw = new RoboclawProxy(_logger,clinetAmber);
 	LOG4CXX_INFO(_logger, "After: RoboclawProxy()");
 
 	skaner = new HokuyoProxy(_logger,clinetAmber,skipScan);
+
 	skaner->GetScan();
+
+	HoughTransormat *trans = new HoughTransormat();
+
+	trans->GetAngle(skaner->GetAngles(),skaner->GetDistances(),skaner->ScanLength);
+
+
 	LOG4CXX_INFO(_logger, "After: HokuyoProxy()");
-
-	NumberParticles = numberParticles;
-
-	tablicaCzastek = new  Particle[NumberParticles];
-
-	for(int i = 0; i < NumberParticles; i++)
-		tablicaCzastek[i].Init(skaner->ScanLength); // = new Particle(skaner->ScanLength);
-
-	iloscCzastekDoUsuniacia = 0;
 
 	EPSILON = epsilon;
 	GENERATION = generation;
@@ -98,20 +81,16 @@ void Location::RunLocation()
 {
 	LOG4CXX_INFO(_logger, "RunLocation");
 
-	ofstream myfile;
-
-
-
-	/*
+/*
 	string selectedRooms[] = {"Space689","Space1384","Space762"};
 	string selectedRooms[] = {"Space2310","Space2337","Space2228"};
 	int countSelectedRooms = 3;
 
 	countRoomAndBox = GetSelectedRooms(rooms,countRoomAndBox,selectedRooms,countSelectedRooms);
-	 */
+*/
 
-	//RozmiescCzastki(rooms,countRoomAndBox,tablicaCzastek,NumberParticles);
-	InitTablicaCzastekLosowo(tablicaCzastek,rooms,countRoomAndBox);
+	//	RozmiescCzastki(bBox,countRoomAndBox,tablicaCzastek,NumberParticles);
+	InitTablicaCzastekLosowo(tablicaCzastek,bBox,countRoomAndBox);
 
 #if DIAGNOSTIC == 1
 	SendParticle(&diagnostic,tablicaCzastek);
@@ -119,6 +98,8 @@ void Location::RunLocation()
 	size = diagnostic.size();
 	clientParticle->Send(wys,size);
 #endif
+
+	//speedRoboClaw = roboClaw->GetSpeed(); //??? po co
 
 	gettimeofday(&start, NULL);
 
@@ -129,14 +110,8 @@ void Location::RunLocation()
 	clientParticle->Send(wys,size);
 #endif
 
-//	skaner->GetScan();
-//			speedRoboClaw = roboClaw->GetSpeed(); //droga w metrach
-//			angleRoboClaw = roboClaw->GetAngle(deletaTime);
-
 	while(work)
 	{
-		myfile.open("/home/szsz/log.csv",ios::app);
-
 		gettimeofday(&end, NULL);
 		deletaTime = ((end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec)/1000.0) / 1000;
 		gettimeofday(&start, NULL);
@@ -160,8 +135,7 @@ void Location::RunLocation()
 
 		for (unsigned int i = 0; i < NumberParticles; i++)
 		{
-			currentRoom = getRoom(tablicaCzastek[i].X,tablicaCzastek[i].Y); //pobranie informacji w ktrorym BB jest czastka
-			//	GetRoom(rooms,countRoomAndBox,tablicaCzastek[i].X,tablicaCzastek[i].Y);
+			currentRoom = GetRoom(rooms,countRoomAndBox,tablicaCzastek[i].X,tablicaCzastek[i].Y); //pobranie informacji w ktrorym BB jest czastka
 
 			if(currentRoom == NULL)
 			{
@@ -170,55 +144,7 @@ void Location::RunLocation()
 				continue;
 			}
 
-			//tablicaCzastek[i].UpdateCountProbability5(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
-
-//			printf("Particle: %d\n",i);
-//			fflush(NULL);
-
-			tablicaCzastek[i].UpdateCountProbability55(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
-
-			//string ss;
-
-
-
-
-
-//			for(int j = 0; j < skaner->ScanLength; j++)
-//			{
-//				 myfile << i << ";" << j << ";" << tablicaCzastek[i].WallNameTable[j] + ";" << tablicaCzastek[i].GaussTable[j] << ";" <<
-//				 		   tablicaCzastek[i].CountDistance[j] << ";" << ((double) skaner->Distance(j) / 1000) << ";" <<  ((double) tablicaCzastek[i].CountDistance[j] -  ((double) skaner->Distance(j) / 1000))  << ";" << "\n";
-//
-//				 myfile.flush();
-//			}
-//
-//				ss.clear();
-//				ss +=  tablicaCzastek[i].WallNameTable[j] + ";";
-//				ss += tablicaCzastek[i].GaussTable[j];
-//				ss += ";";
-//				ss += tablicaCzastek[i].CountDistance[j];
-//				ss += ";";
-//				ss += ((double) skaner->Distance(j) / 1000);
-//				ss += ";";
-//				ss += "\n";
-//
-//
-//
-//				saveToFile("/home/szsz/log.csv",ss);
-//			}
-
-
-
-				//				printf("%d;%d;%s;%f;%f;%f;\n",i,j,tablicaCzastek[i].WallNameTable[j].c_str(),
-//												  tablicaCzastek[i].GaussTable[j],
-//												  tablicaCzastek[i].CountDistance[j],
-//												  (double) skaner->Distance(j) / 1000);
-//
-//			}
-//
-//			printf("\n");
-//
-//
-//			fflush(NULL);
+			tablicaCzastek[i].UpdateCountProbability5(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
 
 			/*if(tablicaCzastek[i].sMarkToDelete > GENERATION)
 			iloscCzastekDoUsuniacia++;
@@ -262,16 +188,13 @@ void Location::RunLocation()
 #endif
 
 
-		//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w promieniu najlepszej czastki bez zmiany kata
-		//UsunWylosujNoweCzastki68(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //polacznie metody 6 i 8
-		//UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
-		//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
+//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w promieniu najlepszej czastki bez zmiany kata
+//UsunWylosujNoweCzastki68(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //polacznie metody 6 i 8
+//UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
+//UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
 
 		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
-
-//		printf("Czas:%f[s]\n",deletaTime);
-//		fflush(NULL);
 
 #if DIAGNOSTIC == 1
 		SendParticle(&diagnostic,tablicaCzastek);
@@ -282,23 +205,19 @@ void Location::RunLocation()
 		//printf("Czas:%f[s]\n",deletaTime);
 		//fflush(NULL);
 #endif
-
-		 myfile.close();
 	}
-
-
 }
 
-void Location::RozmiescCzastki(Room* bbBox,unsigned int BoundingBoxCount,Particle* ttablicaCzastek,unsigned int ParticleCount)
+void Location::RozmiescCzastki(BoundingBox* bbBox,unsigned int BoundingBoxCount,Particle* ttablicaCzastek,unsigned int ParticleCount)
 {
 	double maxX = 0.0;
-	double maxY = 0.0;
+		double maxY = 0.0;
 
-	for(unsigned int i = 0; i < BoundingBoxCount; i++)
-	{
-		maxX =  std::max(maxX,bbBox[i].Box.X_Right_Top);
-		maxY =  std::max(maxY,bbBox[i].Box.Y_Right_Top);
-	}
+		for(unsigned int i = 0; i < BoundingBoxCount; i++)
+		{
+		 maxX =  std::max(maxX,bbBox[i].X_Right_Top);
+		 maxY =  std::max(maxY,bbBox[i].Y_Right_Top);
+		}
 
 	Particle tempRef;
 	tempRef.X = 0.3;
@@ -317,7 +236,7 @@ void Location::RozmiescCzastki(Room* bbBox,unsigned int BoundingBoxCount,Particl
 			temp->AlfaStopnie = tempRef.AlfaStopnie;
 			temp->Probability = 0.0;
 			tablicaCzastek[i] = temp;
-			 */
+			*/
 			ttablicaCzastek[i].X = tempRef.X;
 			ttablicaCzastek[i].Y = tempRef.Y;
 			ttablicaCzastek[i].Alfa = tempRef.Alfa;
@@ -350,27 +269,26 @@ void Location::RozmiescCzastki(Room* bbBox,unsigned int BoundingBoxCount,Particl
 	p = -1;
 	tempRef.X += 0.4;
 	}
-	 */
+	*/
 }
 
-void Location::InitTablicaCzastekLosowo(Particle *tablica,Room* room,int iCountBox)
+void Location::InitTablicaCzastekLosowo(Particle *tablica,BoundingBox* bbBox,int iCountBox)
 {
 	double maxX = 0.0;
 	double maxY = 0.0;
 
 	for(int i = 0; i < iCountBox; i++)
 	{
-		maxX =  std::max(maxX,room[i].Box.X_Right_Top);
-		maxY =  std::max(maxY,room[i].Box.Y_Right_Top);
+	 maxX =  std::max(maxX,bbBox[i].X_Right_Top);
+	 maxY =  std::max(maxY,bbBox[i].Y_Right_Top);
 	}
 
 	for (unsigned int i = 0; i < NumberParticles; i++)
 	{
-		tablica[i].maxX = maxX;
-		tablica[i].maxY = maxY;
+		Particle *temp = new Particle(maxX,maxY);
+		temp->Losuj22();
 
-		tablica[i].Losuj22();
-
+		tablica[i] = *temp;
 	}
 }
 
@@ -380,16 +298,6 @@ Room* Location::GetRoom(Room* bbBox,int length, double X,double Y)
 	{
 		if((X >= bbBox[i].Box.X_Left_Bottom) && (X <= bbBox[i].Box.X_Right_Bottom) && (Y >= bbBox[i].Box.Y_Left_Bottom) && (Y <= bbBox[i].Box.Y_Left_Top))
 			return &(bbBox[i]);
-	}
-	return NULL;
-}
-
-Room* Location::getRoom(double ParticleX,double ParticleY)
-{
-	for (int i = 0; i < countRoomAndBox; i++)
-	{
-		if((ParticleX >= rooms[i].Box.X_Left_Bottom) && (ParticleX <= rooms[i].Box.X_Right_Bottom) && (ParticleY >= rooms[i].Box.Y_Left_Bottom) && (ParticleY <= rooms[i].Box.Y_Left_Top))
-			return &(rooms[i]);
 	}
 	return NULL;
 }
@@ -441,10 +349,10 @@ void Location::UsunWylosujNoweCzastki2(Particle* ttablicaCzastek,unsigned int il
 
 	//nowe czastki
 	//for(unsigned int i = end; i < length; i++)
-	//tablicaCzastek[i].Losuj22();
+		//tablicaCzastek[i].Losuj22();
 
 
-	/*	iloscCzastekDoUsuniecia = 0;
+/*	iloscCzastekDoUsuniecia = 0;
 	for(int i = 0; i < length;i++)
 	{
 		if(tablicaCzastek[i].sMarkToDelete > GENERATION)
@@ -489,7 +397,7 @@ void Location::UsunWylosujNoweCzastki3(Particle* ttablicaCzastek,unsigned int le
 		if(iloscCzastekDoUsuniecia == length)
 		{
 			iloscCzastekDoUsuniecia--;
-			//InitTablicaCzastekLosowo(ttablicaCzastek,bbBox,BoundingBoxCount);
+			InitTablicaCzastekLosowo(ttablicaCzastek,bbBox,BoundingBoxCount);
 		}
 		int zakres = length - iloscCzastekDoUsuniecia;
 		//powiel czastki
@@ -507,7 +415,7 @@ void Location::UsunWylosujNoweCzastki3(Particle* ttablicaCzastek,unsigned int le
 			int p = wylosujBB(BoundingBoxCount);
 			ttablicaCzastek[index].LosujPozycje(bbBox[p].X_Left_Bottom,bbBox[p].X_Right_Bottom,bbBox[p].Y_Left_Bottom,bbBox[p].Y_Left_Top);
 		}
-	}
+}
 }
 
 void Location::UsunWylosujNoweCzastki4(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
@@ -549,17 +457,17 @@ void Location::UsunWylosujNoweCzastki5(Particle* ttablicaCzastek,unsigned int le
 void Location::UsunWylosujNoweCzastki6(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
 {
 
-	if(iloscCzastekDoUsuniecia != length)
+   if(iloscCzastekDoUsuniecia != length)
 	{
-		unsigned int index = length - 1;
+	   unsigned int index = length - 1;
 
-		//nowe czastki
-		for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
-			ttablicaCzastek[index].Losuj22();
+	//nowe czastki
+	for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
+		ttablicaCzastek[index].Losuj22();
 
-		//powielenie
-		for(unsigned int i = 0; i < index; i++,index--)
-			ttablicaCzastek[index].LosujSasiada(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
+	//powielenie
+	for(unsigned int i = 0; i < index; i++,index--)
+		ttablicaCzastek[index].LosujSasiada(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
 	}
 	else if(iloscCzastekDoUsuniecia == length)
 	{
@@ -632,7 +540,7 @@ void Location::UsunWylosujNoweCzastki9(Particle* ttablicaCzastek,unsigned int le
 	}
 	else if(iloscCzastekDoUsuniecia == length)
 	{
-		for(int i = 1; i < length; i++)
+ 		for(int i = 1; i < length; i++)
 		{
 			ttablicaCzastek[i].Losuj33(bbBox[index].Box.X_Left_Bottom,bbBox[index].Box.X_Right_Bottom,bbBox[index].Box.Y_Left_Bottom,bbBox[index].Box.Y_Left_Top);
 			index++;
@@ -664,17 +572,17 @@ void Location::UsunWylosujNoweCzastki10(Particle* ttablicaCzastek,unsigned int l
 void Location::UsunWylosujNoweCzastki68(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
 {
 
-	if(iloscCzastekDoUsuniecia != length)
+   if(iloscCzastekDoUsuniecia != length)
 	{
-		unsigned int index = length - 1;
+	   unsigned int index = length - 1;
 
-		//nowe czastki
-		for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
-			ttablicaCzastek[index].Losuj22();
+	//nowe czastki
+	for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
+		ttablicaCzastek[index].Losuj22();
 
-		//powielenie
-		for(unsigned int i = 0; i < index; i++,index--)
-			ttablicaCzastek[index].LosujSasiada5(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
+	//powielenie
+	for(unsigned int i = 0; i < index; i++,index--)
+		ttablicaCzastek[index].LosujSasiada5(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
 	}
 	else if(iloscCzastekDoUsuniecia == length)
 	{
@@ -688,17 +596,17 @@ void Location::UsunWylosujNoweCzastki68(Particle* ttablicaCzastek,unsigned int l
 void Location::UsunWylosujNoweCzastki68a(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
 {
 
-	if(iloscCzastekDoUsuniecia != length)
+   if(iloscCzastekDoUsuniecia != length)
 	{
-		unsigned int index = length - 1;
+	   unsigned int index = length - 1;
 
-		//nowe czastki
-		for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
-			ttablicaCzastek[index].Losuj22();
+	//nowe czastki
+	for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
+		ttablicaCzastek[index].Losuj22();
 
-		//powielenie
-		for(unsigned int i = 0; i < index; i++,index--)
-			ttablicaCzastek[index].LosujSasiada6(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
+	//powielenie
+	for(unsigned int i = 0; i < index; i++,index--)
+		ttablicaCzastek[index].LosujSasiada6(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa);
 	}
 	else if(iloscCzastekDoUsuniecia == length)
 	{
@@ -713,17 +621,17 @@ void Location::UsunWylosujNoweCzastki68a(Particle* ttablicaCzastek,unsigned int 
 void Location::UsunWylosujNoweCzastki7(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double wheelTrack, double VL, double Vr,double dt)
 {
 
-	if(iloscCzastekDoUsuniecia != length)
+   if(iloscCzastekDoUsuniecia != length)
 	{
-		unsigned int index = length - 1;
+	   unsigned int index = length - 1;
 
-		//nowe czastki
-		for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
-			ttablicaCzastek[index].Losuj22();
+	//nowe czastki
+	for(unsigned int i = 0; i < ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++, index--)
+		ttablicaCzastek[index].Losuj22();
 
-		//powielenie
-		for(unsigned int i = 0; i < index; i++,index--)
-			ttablicaCzastek[index].LosujSasiada3(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa,wheelTrack, VL,  Vr, dt);
+	//powielenie
+	for(unsigned int i = 0; i < index; i++,index--)
+		ttablicaCzastek[index].LosujSasiada3(ttablicaCzastek[i].X,ttablicaCzastek[i].Y,ttablicaCzastek[i].Alfa,wheelTrack, VL,  Vr, dt);
 	}
 	else if(iloscCzastekDoUsuniecia == length)
 	{
@@ -746,7 +654,7 @@ int Location::compareMyType (const void * a, const void * b)
 	else if ( (*(Particle*)a).Probability == (*(Particle*)b).Probability ) return 0;
 	else return -1;
 }
- */
+*/
 
 int Location::compareMyType (const void * a, const void * b)
 {
@@ -760,9 +668,9 @@ int Location::compareMyType (const void * a, const void * b)
 
 inline int Location::wylosujBB(int fMax)
 {
-	int f = rand() % fMax;
-	//f /= RAND_MAX;
-	return f; // fMin + f * (fMax - fMin);
+int f = rand() % fMax;
+//f /= RAND_MAX;
+return f; // fMin + f * (fMax - fMin);
 }
 
 char* Location::getRobotIPAdress()
@@ -772,24 +680,16 @@ char* Location::getRobotIPAdress()
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-	/* I want to get an IPv4 IP address */
-	ifr.ifr_addr.sa_family = AF_INET;
+	 /* I want to get an IPv4 IP address */
+	 ifr.ifr_addr.sa_family = AF_INET;
 
-	/* I want IP address attached to "eth0" */
-	strncpy(ifr.ifr_name, "lo", IFNAMSIZ-1);
+	 /* I want IP address attached to "eth0" */
+	 strncpy(ifr.ifr_name, "lo", IFNAMSIZ-1);
 
-	ioctl(fd, SIOCGIFADDR, &ifr);
+	 ioctl(fd, SIOCGIFADDR, &ifr);
 
-	close(fd);
+	 close(fd);
 
-	return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
+	 return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
 }
 
-
-void Location::saveToFile(string sFilePath,string sData)
-{
-	ofstream myfile;
-	  myfile.open(sFilePath.c_str(),ios::app);
-	  myfile << sData;
-	  myfile.close();
-}

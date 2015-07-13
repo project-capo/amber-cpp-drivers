@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sstream>
-#include <fstream>
-#include <iostream>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -17,6 +15,7 @@
 #include "HokuyoProxy.h"
 #include "RoboclawProxy.h"
 #include "LocationProxy.h"
+#include "HoughTransormat.h"
 
 #include "BoundingBox.h"
 #include "Particle.h"
@@ -40,15 +39,10 @@ private:
 	char* amberUdp;
 	UdpClient *clinetAmber;
 
-	//BoundingBox* bBox;
-
+	BoundingBox* bBox;
 	Room* rooms;
+	int countBox;
 	int countRoomAndBox;
-
-	Room* getRoom(double ParticleX,double ParticleY);
-
-	//int countBox;
-
 
 	Particle* tablicaCzastek;
 	unsigned int NumberParticles;
@@ -71,8 +65,8 @@ private:
 
 	bool work;
 
-	void RozmiescCzastki(Room* bBox,unsigned int BoundingBoxCount,Particle* tablicaCzastek,unsigned int ParticleCount);
-	void InitTablicaCzastekLosowo(Particle *tablica,Room* room,int countBox);
+	void RozmiescCzastki(BoundingBox* bBox,unsigned int BoundingBoxCount,Particle* tablicaCzastek,unsigned int ParticleCount);
+	void InitTablicaCzastekLosowo(Particle *tablica,BoundingBox* bBox,int countBox);
 	Room* GetRoom(Room* bBox,int length, double X,double Y);
 
 	const char* SendParticle(string *diagnostic,Particle *tab);
@@ -101,7 +95,6 @@ private:
 
 	/////// Diagnostic ////////////////
 
-	void saveToFile(string sFilePath,string sData);
 
 	int GetSelectedRooms(Room* & bbBox,int length,string selectedRooms[],int selectedRoomsCount);
 #if DIAGNOSTIC == 1
