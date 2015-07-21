@@ -1,4 +1,5 @@
 #include "BoundingBox.h"
+//test
 
 MazeWall FindWall(MazeWall* wall,int WallsCount,string id)
 {
