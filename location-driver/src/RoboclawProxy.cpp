@@ -121,10 +121,17 @@ double RoboclawProxy::GetSpeed()
 			}
 			while(!isSpeedOK(frontLeftSpeed,frontRightSpeed, rearLeftSpeed, rearRightSpeed));
 
+			/*
 			Vr = (double) (frontRightSpeed + rearRightSpeed) / 2000;
 			Vl = (double) (frontLeftSpeed + rearLeftSpeed) / 2000;
 
-			speed = ((frontLeftSpeed + frontRightSpeed + rearLeftSpeed + rearRightSpeed) / 4);
+			speed = ((frontLeftSpeed + frontRightSpeed + rearLeftSpeed + rearRightSpeed) / 4);*/
+
+			Vr = (double) (rearRightSpeed) / 1000;
+			Vl = (double) (rearLeftSpeed) / 1000;
+
+			speed = ((rearLeftSpeed + rearRightSpeed) / 2);
+
 			speed = (speed / 1000);
 		}
 		catch(std::exception& e)
