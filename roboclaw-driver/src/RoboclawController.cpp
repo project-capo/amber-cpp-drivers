@@ -36,13 +36,13 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd,
 
 	_roboclawDriver->initializeDriver();
 
-	_timeoutMonitorThread = new boost::thread(
-			boost::bind(&RoboclawController::timeoutMonitor, this));
+	//_timeoutMonitorThread = new boost::thread(
+	//		boost::bind(&RoboclawController::timeoutMonitor, this));
 
 	_commendMonitorThread = new boost::thread(
 			boost::bind(&RoboclawController::commendMonitor, this));
 
-	if (_configuration->battery_monitor_interval > 0) {
+	/*if (_configuration->battery_monitor_interval > 0) {
 		_batteryMonitorThread = new boost::thread(
 				boost::bind(&RoboclawController::batteryMonitor, this));
 	}
@@ -55,7 +55,7 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd,
 	if (_configuration->temperature_monitor_interval > 0) {
 		_temperatureMonitorThread = new boost::thread(
 				boost::bind(&RoboclawController::temperatureMonitor, this));
-	}
+	}*/
 
 	_roboclawDriver->setLed1(true);
 	_roboclawDriver->setLed2(false);
