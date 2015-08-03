@@ -37,17 +37,6 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd,
 
 	_roboclawDriver->initializeDriver();
 
-<<<<<<< HEAD
-	/*_timeoutMonitorThread = new boost::thread(
-			boost::bind(&RoboclawController::timeoutMonitor, this));
-=======
-	//_timeoutMonitorThread = new boost::thread(
-	//		boost::bind(&RoboclawController::timeoutMonitor, this));
-
-	_commendMonitorThread = new boost::thread(
-			boost::bind(&RoboclawController::commendMonitor, this));
->>>>>>> branch 'szszRoboClawFix' of https://github.com/project-capo/amber-cpp-drivers.git
-
 	/*if (_configuration->battery_monitor_interval > 0) {
 		_batteryMonitorThread = new boost::thread(
 				boost::bind(&RoboclawController::batteryMonitor, this));
@@ -62,15 +51,12 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd,
 		_temperatureMonitorThread = new boost::thread(
 				boost::bind(&RoboclawController::temperatureMonitor, this));
 	}*/
-<<<<<<< HEAD
 
 	_timeoutMonitorThread = new boost::thread(
 				boost::bind(&RoboclawController::timeoutMonitor, this));
 
 	_commendMonitorThread = new boost::thread(
 			boost::bind(&RoboclawController::commendMonitor, this));
-=======
->>>>>>> branch 'szszRoboClawFix' of https://github.com/project-capo/amber-cpp-drivers.git
 
 	_roboclawDriver->setLed1(true);
 	_roboclawDriver->setLed2(false);
