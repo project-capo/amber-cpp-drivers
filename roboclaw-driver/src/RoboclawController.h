@@ -74,6 +74,8 @@ private:
 	MotorsSpeedStruct sendRoboClawSpeed;
 	MotorsSpeedStruct readRoboClawSpeed;
 
+	bool hasNewDataToSent;
+
 	void commendMonitor();
 
 	/*int currentFrontLeftSpeed;
