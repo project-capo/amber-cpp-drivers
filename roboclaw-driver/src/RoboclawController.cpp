@@ -36,11 +36,8 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd,
 
 	_roboclawDriver->initializeDriver();
 
-	_timeoutMonitorThread = new boost::thread(
+	/*_timeoutMonitorThread = new boost::thread(
 			boost::bind(&RoboclawController::timeoutMonitor, this));
-
-	_commendMonitorThread = new boost::thread(
-			boost::bind(&RoboclawController::commendMonitor, this));
 
 	if (_configuration->battery_monitor_interval > 0) {
 		_batteryMonitorThread = new boost::thread(
@@ -55,7 +52,13 @@ RoboclawController::RoboclawController(int pipeInFd, int pipeOutFd,
 	if (_configuration->temperature_monitor_interval > 0) {
 		_temperatureMonitorThread = new boost::thread(
 				boost::bind(&RoboclawController::temperatureMonitor, this));
-	}
+	}*/
+
+	_timeoutMonitorThread = new boost::thread(
+				boost::bind(&RoboclawController::timeoutMonitor, this));
+
+	_commendMonitorThread = new boost::thread(
+			boost::bind(&RoboclawController::commendMonitor, this));
 
 	_roboclawDriver->setLed1(true);
 	_roboclawDriver->setLed2(false);
@@ -186,6 +189,7 @@ void RoboclawController::handleMotorsEncoderCommand(
 	mc.rearRightSpeed = toQpps(motorsCommand->rearrightspeed());
 
 	sendRoboClawSpeed = mc;
+	hasNewDataToSent = true;
 }
 
 int RoboclawController::toQpps(int in) {
@@ -536,17 +540,19 @@ void RoboclawController::parseConfigurationFile(const char *filename) {
 
 }
 
-void RoboclawController::commendMonitor() {
-	while (1) {
-
+void RoboclawController::commendMonitor()
+{
+	while (1)
+	{
 		//wyslanie komendy do RoboClaw
-
-		if (!_roboclawDisabled) {
-
-			try {
-				_roboclawDriver->sendMotorsEncoderCommand(
-						&this->sendRoboClawSpeed);
-			} catch (RoboclawSerialException& e) {
+		if (!_roboclawDisabled)
+		{
+			try
+			{
+				_roboclawDriver->sendMotorsEncoderCommand(&this->sendRoboClawSpeed);
+			}
+			catch (RoboclawSerialException& e)
+			{
 				// do nothing
 			}
 		}
@@ -555,13 +561,15 @@ void RoboclawController::commendMonitor() {
 		if (!_roboclawDisabled) {
 
 			// repeat reads in case of read errors
-			for (unsigned int i = 0; i < _configuration->critical_read_repeats;
-					i++) {
+			for (unsigned int i = 0; i < _configuration->critical_read_repeats;i++)
+			{
 				try {
 					_roboclawDriver->readCurrentSpeed(&readRoboClawSpeed);
 					//speedReadSuccess = true;
 					break;
-				} catch (RoboclawSerialException& e) {
+				}
+				catch (RoboclawSerialException& e)
+				{
 					// do nothing
 				}
 			}
@@ -576,13 +584,25 @@ void RoboclawController::timeoutMonitor() {
 	LOG4CXX_INFO(_logger,
 			"Timeouts monitor thread started, stop_timeout: " << _configuration->stop_idle_timeout << "ms, reset_timeout: " << _configuration->reset_idle_timeout << " ms");
 
-	resetTimeouts();
+	/*resetTimeouts();
 
 	boost::system_time actTime;
 	bool doStop;
 	bool doReset;
+*/
+	while (1)
+	{
+		boost::this_thread::sleep(boost::posix_time::milliseconds(_configuration->reset_idle_timeout));
 
-	while (1) {
+		if(!hasNewDataToSent)
+		{
+			sendRoboClawSpeed.frontLeftSpeed = sendRoboClawSpeed.frontRightSpeed = sendRoboClawSpeed.rearLeftSpeed = sendRoboClawSpeed.rearRightSpeed = 0;
+			hasNewDataToSent = true;
+		}
+		else
+			hasNewDataToSent = false;
+
+		/*
 		if (_batteryLow) {
 			return;
 		}
@@ -613,9 +633,9 @@ void RoboclawController::timeoutMonitor() {
 
 		if (doReset) {
 			resetAndWait();
-		}
+		}*/
 
-		boost::thread::sleep(actTime + boost::posix_time::milliseconds(100));
+		//boost::thread::sleep(actTime + boost::posix_time::milliseconds(100));
 	}
 }
 
