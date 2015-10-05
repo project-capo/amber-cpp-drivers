@@ -54,6 +54,11 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	ILOSC_LOSOWANYCH_NOWYCH_CZASTEK = ilosc_losowanych_nowych_czastek;
 
 	work = true;
+
+	int maxMeasuredDistance = 5600;
+    int houghResolution = 20;
+
+    kht = new KernelBasedHoughTransform(maxMeasuredDistance, houghResolution);
 }
 
 Location::~Location()
@@ -62,10 +67,16 @@ Location::~Location()
 
 	delete clinetAmber;
 	delete tablicaCzastek;
+	delete kht;
 
 #if DIAGNOSTIC == 1
 	delete clientParticle;
 #endif
+}
+
+inline double Location::ConvertToRadian(double degree)
+{
+	return ((degree * M_PI) / 180);
 }
 
 
@@ -125,8 +136,15 @@ void Location::RunLocation()
 		angleRoboClaw = 0;//roboClaw->GetAngle(deletaTime);
 #endif
 
+
+		bestFitAngle = kht->GetMainDirectionAngle(skaner->GetAllAngles(), skaner->GetAllDistances(), skaner->ScanLengthAll);
+		bestFitAngle = ConvertToRadian(bestFitAngle);
+
+
 		for (unsigned int i = 0; i < NumberParticles; i++)
 		{
+			tablicaCzastek[i].ZaktualizujPrzesuniecie4(roboClaw->wheelTrack,roboClaw->Vr,roboClaw->Vl,deletaTime);
+
 			currentRoom = GetRoom(rooms,countRoomAndBox,tablicaCzastek[i].X,tablicaCzastek[i].Y); //pobranie informacji w ktrorym BB jest czastka
 
 			if(currentRoom == NULL)
@@ -149,8 +167,6 @@ void Location::RunLocation()
 			}
 			else
 				tablicaCzastek[i].sMarkToDelete = 0;
-
-			tablicaCzastek[i].ZaktualizujPrzesuniecie4(roboClaw->wheelTrack,roboClaw->Vr,roboClaw->Vl,deletaTime);
 		}
 
 #if DIAGNOSTIC == 1
@@ -185,7 +201,7 @@ void Location::RunLocation()
 //UsunWylosujNoweCzastki68a(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //6 i 8 oraz losujemy kat z zakresu 0 2 pi
 //UsunWylosujNoweCzastki6(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia);
 
-		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
+		UsunWylosujNoweCzastki8(tablicaCzastek,NumberParticles,iloscCzastekDoUsuniacia,bestFitAngle); //powielanie czastek w prostkacie tylko najlepsza czastka zawsze powielona; X,Y czastki wyznacza dolny prostokat, losujemy kat
 		iloscCzastekDoUsuniacia = 0;
 
 #if DIAGNOSTIC == 1
@@ -339,7 +355,7 @@ void Location::UsunWylosujNoweCzastki2(Particle* ttablicaCzastek,unsigned int il
 	for(unsigned int i = istart, j = 0; i < iend; i++, j++)
 		ttablicaCzastek[i].LosujSasiada2(ttablicaCzastek[j].X,ttablicaCzastek[j].Y);
 
-	//nowe czastki
+	//nowe czastkidouble Location::getBestFitAngle(int i, double bestFitAngle)
 	//for(unsigned int i = end; i < length; i++)
 		//tablicaCzastek[i].Losuj22();
 
@@ -470,19 +486,37 @@ void Location::UsunWylosujNoweCzastki6(Particle* ttablicaCzastek,unsigned int le
 	}
 }
 
-
-void Location::UsunWylosujNoweCzastki8(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia)
+double Location::getBestFitAngle(int i, double bestFitAngle)
 {
+	int index = i % 4;
+
+	if(index == 0)
+		return bestFitAngle;
+	else if(index == 1)
+		return bestFitAngle + (M_PI / 2);
+	else if(index == 2)
+		return bestFitAngle + (M_PI);
+	else
+		return bestFitAngle + (M_PI * 1,5);
+}
+
+void Location::UsunWylosujNoweCzastki8(Particle* ttablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double bestFitAngle)
+{
+	double tempBestFitAngle = bestFitAngle;
+
 	if(iloscCzastekDoUsuniecia != length)
 	{
 
 		for(int i = (length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK); i < length; i++)
-			ttablicaCzastek[i].Losuj22();
+		{
+			tempBestFitAngle = getBestFitAngle(i,bestFitAngle);
+			ttablicaCzastek[i].Losuj22(tempBestFitAngle);
+		}
 
 		for(int i = 1; i < length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++)
 		{
-			ttablicaCzastek[i].LosujSasiada5(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,ttablicaCzastek[0].Alfa);
-
+			tempBestFitAngle = getBestFitAngle(i,bestFitAngle);
+			ttablicaCzastek[i].LosujSasiada5(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,tempBestFitAngle);
 		}
 
 
@@ -497,7 +531,10 @@ void Location::UsunWylosujNoweCzastki8(Particle* ttablicaCzastek,unsigned int le
 	else if(iloscCzastekDoUsuniecia == length)
 	{
 		for(int i = 1; i < length; i++)
-			ttablicaCzastek[i].Losuj22();
+		{
+			tempBestFitAngle = getBestFitAngle(i,bestFitAngle);
+			ttablicaCzastek[i].Losuj22(tempBestFitAngle);
+		}
 	}
 }
 
@@ -518,7 +555,6 @@ void Location::UsunWylosujNoweCzastki9(Particle* ttablicaCzastek,unsigned int le
 		for(int i = 1; i < length - ILOSC_LOSOWANYCH_NOWYCH_CZASTEK; i++)
 		{
 			ttablicaCzastek[i].LosujSasiada5(ttablicaCzastek[0].X,ttablicaCzastek[0].Y,ttablicaCzastek[0].Alfa);
-
 		}
 
 

@@ -20,6 +20,8 @@ private:
 	UdpClient* udp;
     double *angles;
 	int *distances;
+    double *anglesAll;
+	int *distancesAll;
 
 	char* requestScan;
 	int requestScanLength;
@@ -50,6 +52,10 @@ public:
     double* GetAngles(void);
 
     int* GetDistances(void);
+
+    double* GetAllAngles(void);
+
+    int* GetAllDistances(void);
 
     double ConvertToRadian(double degree);
 };

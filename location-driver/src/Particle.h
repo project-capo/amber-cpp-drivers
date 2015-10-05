@@ -195,14 +195,23 @@ Particle()
 			sMarkToDelete = 0;
 	}*/
 
-	inline void Losuj22() //Generuj czastke losowa na mapie
+	inline void Losuj22(double bestFitAngle) //Generuj czastke losowa na mapie
 		{
 				X =  fRand(0,maxX);
 				Y = fRand(0,maxY);
-				Alfa =  fRand(0,2 * M_PI);
+				Alfa = bestFitAngle;//fRand(0,2 * M_PI);
 				Probability = 0.0;
 				sMarkToDelete = 0;
 		}
+
+	inline void Losuj22() //Generuj czastke losowa na mapie
+			{
+					X =  fRand(0,maxX);
+					Y = fRand(0,maxY);
+					Alfa = fRand(0,2 * M_PI);
+					Probability = 0.0;
+					sMarkToDelete = 0;
+			}
 
 	inline void Losuj33(double minX,double maxX,double minY,double maxY) //Generuj czastke losowa na mapie
 		{

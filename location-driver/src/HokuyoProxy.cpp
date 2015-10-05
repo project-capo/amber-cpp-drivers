@@ -37,6 +37,9 @@ HokuyoProxy::HokuyoProxy(LoggerPtr logger,UdpClient *client_udp,unsigned int ski
 
 	ScanLengthAll = tmp_scan->distances_size();
 
+	anglesAll = new double[ScanLengthAll];
+	distancesAll = new int[ScanLengthAll];
+
 	angles = new double[ScanLengthAll];
 	distances = new int[ScanLengthAll];
 
@@ -58,7 +61,7 @@ HokuyoProxy::HokuyoProxy(LoggerPtr logger,UdpClient *client_udp,unsigned int ski
 	ScanLengthAll = 682;
 	distances = new int[ScanLengthAll];
 	ScanLength = ScanLengthAll;
-
+	//for(int j = 0)
 	for(int i = 0; i< ScanLengthAll; i++)
 		distances[i] = i;
 
@@ -75,6 +78,8 @@ HokuyoProxy::~HokuyoProxy()
 	delete [] requestScan;
 	delete []distances;
 	delete message;
+	delete []anglesAll;
+	delete []distancesAll;
 }
 
 double HokuyoProxy::Angle(int index)
@@ -109,6 +114,13 @@ void HokuyoProxy::GetScan()
 			while(udp->n < 0);
 
 			tmp_scan = scanRequest(packetBytes);
+
+
+			for(int j = 0; j < ScanLengthAll;j++)
+			{
+				anglesAll[j] =  ConvertToRadian(tmp_scan->angles(j));
+				distancesAll[j] = tmp_scan->distances(j);
+			}
 
 			for(int i = 0,index = 0; i < ScanLengthAll;i += SkipScan,index++)
 			{
@@ -157,6 +169,17 @@ double* HokuyoProxy::GetAngles()
 int* HokuyoProxy::GetDistances()
 {
 	return distances;
+}
+
+
+double* HokuyoProxy::GetAllAngles(void)
+{
+	return anglesAll;
+}
+
+int* HokuyoProxy::GetAllDistances(void)
+{
+	return distancesAll;
 }
 
 amber::DriverHdr  HokuyoProxy::buildHeader()

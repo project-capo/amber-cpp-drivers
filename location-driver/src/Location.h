@@ -23,6 +23,8 @@
 
 #include <log4cxx/propertyconfigurator.h>
 #include <boost/thread/mutex.hpp>
+
+#include "KernelBasedHoughTransform.h"
 using namespace log4cxx;
 
 
@@ -83,7 +85,7 @@ private:
 	void UsunWylosujNoweCzastki6(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
 	void UsunWylosujNoweCzastki7(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double wheelTrack, double VL, double Vr,double dt);
 
-	void UsunWylosujNoweCzastki8(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
+	void UsunWylosujNoweCzastki8(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia,double bestFitAngle);
 	void UsunWylosujNoweCzastki68(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
 
 	void UsunWylosujNoweCzastki68a(Particle* tablicaCzastek,unsigned int length,unsigned int iloscCzastekDoUsuniecia);
@@ -94,6 +96,8 @@ private:
 
 	/////// Diagnostic ////////////////
 
+	inline double ConvertToRadian(double degree);
+	double getBestFitAngle(int i, double bestFitAngle);
 
 	int GetSelectedRooms(Room* & bbBox,int length,string selectedRooms[],int selectedRoomsCount);
 #if DIAGNOSTIC == 1
@@ -105,6 +109,9 @@ private:
 	const char* wys;
 #endif
 	LoggerPtr _logger;
+
+	KernelBasedHoughTransform * kht;
+	double bestFitAngle;
 
 public:
 	Location(LoggerPtr _logger,char* mapPath,unsigned int numberParticles,double epsilon,int generation,unsigned int ilosc_losowanych_nowych_czastek,unsigned int skipScan,char* sIPPart);
