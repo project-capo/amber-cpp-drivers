@@ -137,12 +137,12 @@ void Location::RunLocation()
 #endif
 
 
-		LOG4CXX_INFO(_logger, "Before GetMainDirectionAngle");
+		//LOG4CXX_INFO(_logger, "Before GetMainDirectionAngle");
 
 		bestFitAngle = kht->GetMainDirectionAngle(skaner->GetAllAngles(), skaner->GetAllDistances(), skaner->ScanLengthAll);
 		bestFitAngle = ConvertToRadian(bestFitAngle);
 
-		LOG4CXX_INFO(_logger, "After GetMainDirectionAngle");
+		//LOG4CXX_INFO(_logger, "After GetMainDirectionAngle");
 
 		for (unsigned int i = 0; i < NumberParticles; i++)
 		{
