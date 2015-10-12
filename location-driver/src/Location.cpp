@@ -139,7 +139,7 @@ void Location::RunLocation()
 
 		//LOG4CXX_INFO(_logger, "Before GetMainDirectionAngle");
 
-		bestFitAngle = kht->GetMainDirectionAngle(skaner->GetAllAngles(), skaner->GetAllDistances(), skaner->ScanLengthAll);
+		bestFitAngle = -kht->GetMainDirectionAngle(skaner->GetAllAngles(), skaner->GetAllDistances(), skaner->ScanLengthAll);
 		bestFitAngle = ConvertToRadian(bestFitAngle);
 
 		//LOG4CXX_INFO(_logger, "After GetMainDirectionAngle");
