@@ -27,7 +27,8 @@ Location::Location(LoggerPtr logger, char* mapPath,unsigned int numberParticles,
 	srand(10);
 
     LOG4CXX_INFO(_logger, "Before: parseJasonFile");
-	countRoomAndBox = parseJasonFile(mapPath,bBox,rooms);
+	//countRoomAndBox = parseJasonFile(mapPath,bBox,rooms);
+    countRoomAndBox = parseJasonFile(mapPath,rooms);
 	LOG4CXX_INFO(_logger, "After: parseJasonFile");
 
 	/*for(int i = 0; i <rooms[0].ContainerWallCount(); i++)
@@ -157,7 +158,7 @@ void Location::RunLocation()
 				continue;
 			}
 
-			tablicaCzastek[i].UpdateCountProbability5(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
+			tablicaCzastek[i].UpdateCountProbability55(currentRoom, skaner->GetDistances(),skaner->GetAngles(),skaner->ScanLength); //przeliczamy prawdopodobienstwa
 
 			/*if(tablicaCzastek[i].sMarkToDelete > GENERATION)
 			iloscCzastekDoUsuniacia++;

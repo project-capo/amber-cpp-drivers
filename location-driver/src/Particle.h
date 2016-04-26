@@ -5,6 +5,9 @@
 #include <cfloat>
 #include <algorithm>
 
+#include "JesonHelper.h"
+#include "MazeWall.h"
+
 #define TEST 1
 #define PROMIEN 0.7
 
@@ -20,9 +23,13 @@ using std::string;
 
 struct Point
 {
-	public:
-		double X;
-		double Y;
+public:
+	double X;
+	double Y;
+	string WallName;
+	MazeWall* Wall;
+	double Distance;
+	bool IsOK;
 };
 
 struct Line
@@ -52,7 +59,11 @@ private:
 public:	
 
 	double maxX;
-		double maxY;
+	double maxY;
+
+	double* GaussTable;
+	string* WallNameTable;
+	double* CountDistance;
 
 Particle()
 {
@@ -510,6 +521,16 @@ inline Line getLine(double x,double y,double alfa)
 }
 
 
+inline double calculateDistnacePoitAndWall(double X0,double Y0,MazeWall* wall)
+{
+	double distanceA = sqrt(pow((X0 - wall->From_X),2) + pow((Y0-wall->From_Y),2));
+	double distanceB = sqrt(pow((X0 - wall->To_X),2) + pow((Y0-wall->To_Y),2));
+
+	return min(distanceA,distanceB);
+}
+
+
+
 inline Point calculateIntersection(MazeWall *wall,double alfa,double X2,double Y2)
 {
 	Point temp;
@@ -686,6 +707,47 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 		    return true;
 		}
 
+
+		inline Point calculateDistanceAndIntersection(MazeWall *wall,double scan,double alfa,double X2,double Y2)
+		{
+			Point intersection = calculateIntersection(wall, alfa,X2, Y2);
+			intersection.Distance = calculateDistnace(X2,Y2,intersection.X,intersection.Y);
+			intersection.Wall = wall;
+
+			if(isIntersectionOK(wall,alfa,intersection))
+			{
+				intersection.IsOK = true;
+
+				if(wall->IsGate)
+				{
+					if(scan < intersection.Distance)
+						return intersection;
+					else
+					{
+						Room* tempRoom = wall->NextRoom;
+						MazeWall *tempwall = getCurrentWall(tempRoom,alfa,X2,Y2,wall->Id);
+
+						if(tempwall == NULL)
+						{
+							intersection.IsOK = false;
+							return intersection;
+						}
+						else
+							return calculateDistanceAndIntersection(tempwall,scan,alfa,X2,Y2);
+					}
+				}
+				else
+					return intersection;
+			}
+			else
+			{
+				intersection.IsOK = false;
+				return intersection;
+			}
+		}
+
+
+
 		inline bool canCountDistance (double X2,double Y2,double alfaCzastki,double X_przeciecia,double Y_przeciecia, double alfaSkanu)
 		{
 			//srodek robota robota
@@ -712,6 +774,98 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 				   return result;
 		}
 
+
+		inline double Gauss2(double prop,double real)
+		{
+			double a,b,c,dd;
+			double x = prop;
+			double delta = sqrt(ODCHYLENIE);
+			double ni = real;
+
+			a = 1 / (delta  *sqrt(2 * M_PI));
+			b = ni;
+			c = delta;
+			dd = 0;
+
+			return (a * exp( pow(x - b,2) / (-2 * pow(c,2)))) + dd;
+		}
+
+
+		inline double Gauss3(double prop,double real)
+		{
+		double delta = 0.4;
+
+		double deltaSqur2PI = sqrt(M_PI2);
+		deltaSqur2PI *= delta;
+		deltaSqur2PI = 1 / deltaSqur2PI;
+
+
+		double mianownik2deltaPow2 = pow(delta,2);
+		mianownik2deltaPow2 *= -2;
+
+		double propMINUSrealPow2 = pow(prop - real,2);
+
+		double result =  deltaSqur2PI * exp(propMINUSrealPow2 / mianownik2deltaPow2);
+
+		return result;
+
+		}
+
+		//wyszukaj sciane gdy nie wiem ktora to jest
+		inline MazeWall* getCurrentWall(Room * room,double alfa,double X2,double Y2)
+		{
+			return getCurrentWall(room, alfa, X2, Y2,"");
+		}
+
+		//wyszukaj sciane ale znam ostatnia pozycje
+		inline MazeWall* getCurrentWall(Room * room,Point lastIntersection) //bug w metodzie przechodzenia
+		{
+			double distnaceToWallLeft, distanceToWallRight;
+			room->GetNextWall();
+			MazeWall *currentWall = room->CurrentWall();
+
+			distnaceToWallLeft = calculateDistnacePoitAndWall(lastIntersection.X,lastIntersection.Y,currentWall);
+
+			room->ChangeDirection();
+			currentWall = room->CurrentWall();
+
+			distanceToWallRight = calculateDistnacePoitAndWall(lastIntersection.X,lastIntersection.Y,currentWall);
+
+			if(distnaceToWallLeft < distanceToWallRight)
+			{
+				room->ChangeDirection();
+				return room->CurrentWall();
+			}
+			else
+				return room->CurrentWall();
+		}
+
+		//wyszukaj sciane ale pomin wyszczegolniona
+		inline MazeWall* getCurrentWall(Room * room,double alfa,double X2,double Y2,string skipWallId)
+		{
+			Point intersection;
+
+			for(unsigned int i = 0; i < room->walls.size(); i++)
+			{
+				if(skipWallId ==  room->CurrentWall()->Id)
+				{
+					room->GetNextWall();
+					continue;
+				}
+				else
+				{
+					intersection = calculateIntersection(room->CurrentWall(),alfa,X2,Y2);
+
+					if(isIntersectionOK(room->CurrentWall(),alfa,intersection))
+						return room->CurrentWall();
+					else
+						room->GetNextWall();
+				}
+			}
+
+			return NULL;
+
+		}
 
 		inline void UpdateCountProbability3(Room* box,int scanTable[],double angleTable[],int length)
 		{
@@ -1084,6 +1238,86 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 			}
 
 
+		inline double normalizeAlfa(double alfa)
+		{
+			if(alfa < 0)
+				alfa += M_PI2;
+			else if(alfa > M_PI2)
+				alfa -= M_PI2;
+
+			return  Round(alfa);
+		}
+
+
+		inline void UpdateCountProbability55(Room* room,int scanTable[],double angleTable[],unsigned int scanLength)
+			{
+				double alfa = normalizeAlfa(this->Alfa + angleTable[0]);
+				double distance;
+				double scan;
+				double gauss;
+				double sumProbability = 0.0;
+				Point intersection;
+
+				Probability = 0.0;
+
+				MazeWall* currentWall = getCurrentWall(room,alfa,this->X,this->Y);
+
+				if(currentWall != NULL)
+				{
+					for(unsigned int i = 0; i < scanLength;i++)
+					{
+		//				printf(" %d; ",i);
+		//				fflush(NULL);
+
+						WallNameTable[i] = "";
+						GaussTable[i] =	CountDistance[i] = 0.0;
+
+						scan = (((double) scanTable[i]) / 1000); //pobranie odleglosci ze skanera
+
+						if((scan < 0.05f) && (distance > 5.6f)) //zakres pomieru skenera od 20mm do 5600mm. gdy pomier wyszedl poza zakres i obliczenia rowniez uznajemy pomira z ok
+						{
+							gauss =  Gauss3(scan,scan);
+							GaussTable[i] = gauss;
+							WallNameTable[i] = "out of Hokuyo range";
+							CountDistance[i] = 0.0;
+						}
+						else
+						{
+							alfa = normalizeAlfa(this->Alfa + angleTable[i]);
+							intersection = calculateDistanceAndIntersection(room->CurrentWall(),scan,alfa,this->X,this->Y);
+
+							if(intersection.IsOK)
+							{
+								gauss =  Gauss3(intersection.Distance,scan);
+
+								GaussTable[i] = gauss;
+								WallNameTable[i] = intersection.WallName;
+								CountDistance[i] = intersection.Distance;
+
+								sumProbability += gauss;
+							}
+							else
+							{
+								getCurrentWall(room,intersection);
+
+								//
+								//						room->GetNextWall();
+								//
+								//						alfa = normalizeAlfa(this->Alfa + angleTable[i]);
+								//						intersection = calculateIntersection(room->CurrentWall(),alfa,this->X,this->Y);
+								//
+								//						if(!isIntersectionOK(room->CurrentWall(),alfa,intersection))
+								//							room->ChangeDirection();
+							}
+						}
+					}
+
+					Probability =  Normalize(sumProbability,0, ((double) scanLength) * Gauss3(1,1));
+				}
+			}
+		};
+
+
 	inline double Gauss2(double prop,double real)
 	{
 	double a,b,c,dd;
@@ -1098,7 +1332,7 @@ inline double getDistnace(MazeWall *wall,double alfa,double X2,double Y2)
 
 	return (a * exp( pow(x - b,2) / (-2 * pow(c,2)))) + dd;
 	}
-};
+
 
 
 
