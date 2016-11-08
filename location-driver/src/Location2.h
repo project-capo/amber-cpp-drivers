@@ -33,6 +33,7 @@
 #include "RoboclawProxy.h"
 #include "KernelBasedHoughTransform.h"
 #include "Particle2.h"
+#include "DiagnosticVisualisation.h"
 
 using namespace log4cxx;
 
@@ -41,7 +42,7 @@ private:
 	LoggerPtr _logger;
 
 #if DIAGNOSTIC_MODE == 1
-	UdpClient *diagnosticVisualisation;
+	DiagnosticVisualisation *diagnosticVisualisation;
 #endif
 
 private:

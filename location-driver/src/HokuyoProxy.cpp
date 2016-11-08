@@ -1,4 +1,4 @@
-#include "UdpClientLinux.h"
+
 #include "HokuyoProxy.h"
 
 #define TESTHOKU 0

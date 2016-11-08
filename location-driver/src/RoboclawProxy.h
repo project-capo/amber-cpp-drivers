@@ -1,6 +1,11 @@
+#ifndef ROBOCLAWPROXY_H_
+#define ROBOCLAWPROXY_H_
+
 #include "drivermsg.pb.h"
 #include "roboclaw.pb.h"
 #include <log4cxx/propertyconfigurator.h>
+#include "UdpClientLinux.h"
+
 using namespace log4cxx;
 
 #define ROBOT_MAX_SPEED 5000
@@ -54,3 +59,5 @@ public:
 	double Vr;
 	double Vl;
 };
+
+#endif /* ROBOCLAWPROXY_H_ */

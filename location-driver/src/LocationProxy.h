@@ -1,6 +1,8 @@
 #include "drivermsg.pb.h"
 #include "location.pb.h"
 
+#include "UdpClientLinux.h"
+
 class LocationProxy
 {
 private:

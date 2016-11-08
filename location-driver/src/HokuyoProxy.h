@@ -1,7 +1,11 @@
+#ifndef HOKUYOPROXY_H_
+#define HOKUYOPROXY_H_
 
 #include "drivermsg.pb.h"
 #include "roboclaw.pb.h"
 #include "hokuyo.pb.h"
+
+#include "UdpClientLinux.h"
 
 #include <stdio.h>
 #include <log4cxx/propertyconfigurator.h>
@@ -59,3 +63,5 @@ public:
 
     double ConvertToRadian(double degree);
 };
+
+#endif /* HOKUYOPROXY_H_ */

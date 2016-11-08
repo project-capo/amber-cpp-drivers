@@ -18,10 +18,6 @@ Location2::Location2(LoggerPtr logger, Settings settings) {
 	this->Pos_Alfa = 0;
 	this->timeStamp = 0;
 
-#if DIAGNOSTIC_MODE == 1
-	diagnosticVisualisation = new UdpClient(settings.DiagnosticIPAddress, 1234);
-#endif
-
 	LOG4CXX_INFO(_logger, "Before: AmberClient UdpClient");
 	AmberClientRoboClaw = new UdpClient(settings.RobotIP, 26233);
 	AmberClientHokuyo = new UdpClient(settings.RobotIP, 26233);
@@ -45,6 +41,10 @@ Location2::Location2(LoggerPtr logger, Settings settings) {
 	InitParticleTable(settings.NumberParticles);
 
 	IsWorking = true;
+
+#if DIAGNOSTIC_MODE == 1
+	diagnosticVisualisation = new DiagnosticVisualisation(new UdpClient(settings.DiagnosticIPAddress, 1234),settings.NumberParticles,Particles,RoboClaw,Hokuyo);
+#endif
 }
 
 Location2::~Location2() {
