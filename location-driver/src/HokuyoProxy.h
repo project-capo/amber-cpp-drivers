@@ -42,6 +42,10 @@ private:
 
 public:
 
+	double *Angles;
+	int *Distances;
+	int Length;
+
 	HokuyoProxy(LoggerPtr logger,UdpClient* client_udp,unsigned int skipScan);
 	~HokuyoProxy();
 	

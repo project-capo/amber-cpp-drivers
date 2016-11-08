@@ -70,7 +70,7 @@ public:
 		double Pos_Alfa;
 		long long int timeStamp;
 public:
-	Location2(LoggerPtr logger, Settings settings);
+	Location2(LoggerPtr logger, Settings *settings);
 	virtual ~Location2();
 
 	void RunLocation();

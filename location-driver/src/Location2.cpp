@@ -7,9 +7,9 @@
 
 #include "Location2.h"
 
-Location2::Location2(LoggerPtr logger, Settings settings) {
+Location2::Location2(LoggerPtr logger, Settings *settings) {
 	_logger = logger;
-	_settings = &settings;
+	_settings = settings;
 	LOG4CXX_INFO(_logger, "Location 2");
 
 	this->Pos_X = 0;
@@ -19,12 +19,12 @@ Location2::Location2(LoggerPtr logger, Settings settings) {
 	this->timeStamp = 0;
 
 	LOG4CXX_INFO(_logger, "Before: AmberClient UdpClient");
-	AmberClientRoboClaw = new UdpClient(settings.RobotIP, 26233);
-	AmberClientHokuyo = new UdpClient(settings.RobotIP, 26233);
+	AmberClientRoboClaw = new UdpClient(settings->RobotIP, 26233);
+	AmberClientHokuyo = new UdpClient(settings->RobotIP, 26233);
 	LOG4CXX_INFO(_logger, "After: AmberClient UdpClient");
 
 	LOG4CXX_INFO(_logger, "Before: InitRoomsTable");
-	InitRoomsTable(settings.PathMap);
+	InitRoomsTable(settings->PathMap);
 	LOG4CXX_INFO(_logger, "After: InitRoomsTable");
 
 	LOG4CXX_INFO(_logger, "Before: RoboclawProxy()");
@@ -32,18 +32,18 @@ Location2::Location2(LoggerPtr logger, Settings settings) {
 	LOG4CXX_INFO(_logger, "After: RoboclawProxy()");
 
 	LOG4CXX_INFO(_logger, "Before: HokuyoProxy()");
-	Hokuyo = new HokuyoProxy(_logger, AmberClientHokuyo, settings.SkipScan);
+	Hokuyo = new HokuyoProxy(_logger, AmberClientHokuyo, settings->SkipScan);
 	LOG4CXX_INFO(_logger, "After: HokuyoProxy()");
 
-	kht = new KernelBasedHoughTransform(settings.maxMeasuredDistance,
-			settings.houghResolution);
+	kht = new KernelBasedHoughTransform(settings->maxMeasuredDistance,
+			settings->houghResolution);
 
-	InitParticleTable(settings.NumberParticles);
+	InitParticleTable(settings->NumberParticles);
 
 	IsWorking = true;
 
 #if DIAGNOSTIC_MODE == 1
-	diagnosticVisualisation = new DiagnosticVisualisation(new UdpClient(settings.DiagnosticIPAddress, 1234),settings.NumberParticles,Particles,RoboClaw,Hokuyo);
+	diagnosticVisualisation = new DiagnosticVisualisation(new UdpClient(settings->DiagnosticIPAddress, 1234),settings->NumberParticles,Particles,RoboClaw,Hokuyo);
 #endif
 }
 

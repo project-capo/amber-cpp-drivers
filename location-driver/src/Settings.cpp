@@ -15,6 +15,15 @@ Settings::Settings() {
 
     RobotIP = "127.0.0.1";
 
+
+    //PathMap = NULL;
+    NumberParticles = 10;
+    Epsilon = 0;
+    Generation = 0;
+    NumberRandomNewParticles = 10;
+    SkipScan = 1;
+    DiagnosticIPAddress = "127.0.0.1";
+
 }
 
 Settings::~Settings() {

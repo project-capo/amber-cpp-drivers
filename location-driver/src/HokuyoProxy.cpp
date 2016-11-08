@@ -1,7 +1,7 @@
 
 #include "HokuyoProxy.h"
 
-#define TESTHOKU 0
+#define TESTHOKU 1
 
 
 HokuyoProxy::HokuyoProxy(LoggerPtr logger,UdpClient *client_udp,unsigned int skipScan)
@@ -20,6 +20,12 @@ HokuyoProxy::HokuyoProxy(LoggerPtr logger,UdpClient *client_udp,unsigned int ski
 
 	buildSendMessage(hdr,message);
 
+
+	Angles = new double[10];
+	Distances = new int[10];
+	Length  = 10;
+
+	Distances[0] =444;
 
 #if TESTHOKU == 0
 

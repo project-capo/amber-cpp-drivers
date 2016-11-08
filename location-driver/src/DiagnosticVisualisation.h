@@ -23,7 +23,11 @@ private:
 	HokuyoProxy *Hokuyo;
 	Particle2 *Particles;
 
-	cJSON *rootJSON,*roboClawJSON,*hokuyoJSON,*particlesJSON;
+	cJSON *rootJSON,*roboClawJSON,*hokuyoJSON;
+
+	cJSON *hokuyoJSONAngleTable;
+	cJSON *hokuyoJSONDistancesTable;
+	cJSON *particlesJSONTable;
 
 public:
 	DiagnosticVisualisation(UdpClient *udpClient,unsigned int numberParticles,Particle2 *particleTable, RoboclawProxy *roboClaw, HokuyoProxy *hokuyo);

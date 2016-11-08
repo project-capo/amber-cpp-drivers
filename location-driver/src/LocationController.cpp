@@ -16,6 +16,7 @@
 
 #include "LocationCommon.h"
 #include "LocationController.h"
+#include "Location2.h"
 
 using namespace std;
 using namespace boost;
@@ -319,6 +320,10 @@ void LocationController::saveToFile(string sMap,string sPath)
 }
 
 int main(int argc, char *argv[]) {
+
+	LoggerPtr logger1(Logger::getLogger("main"));
+	Settings set;
+	Location2 *lok = new Location2(logger1,&set);
 
 	if (argc < 3) {
 		return 1;
