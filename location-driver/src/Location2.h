@@ -59,9 +59,14 @@ private:
 
 	Particle2 *Particles;
 
+	unsigned int RoomsLength;
+	Room* Rooms;
+
 private:
 	void InitRoomsTable(char *pathMap);
 	void InitParticleTable(unsigned int numberParticles);
+
+	Room* GetRoom(double X,double Y);
 
 public:
 	double Pos_X;

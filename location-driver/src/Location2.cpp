@@ -81,6 +81,18 @@ void Location2::RunLocation()
 {
 	LOG4CXX_INFO(_logger, "RunLocation");
 
+	Room* currentRoom;
 
 
+	currentRoom = GetRoom(Particles[i].X,Particles[i].Y);
+}
+
+Room* Location2::GetRoom(double X,double Y)
+{
+	for (int i = 0; i < RoomsLength; i++)
+	{
+		if((X >= Rooms[i].Box.X_Left_Bottom) && (X <= Rooms[i].Box.X_Right_Bottom) && (Y >= Rooms[i].Box.Y_Left_Bottom) && (Y <= Rooms[i].Box.Y_Left_Top))
+			return &(Rooms[i]);
+	}
+	return NULL;
 }

@@ -125,6 +125,8 @@ void Room::CreateContainerWall()
 	copy(ContainerWall.begin(),ContainerWall.end(),ContainerWallTable);
 }
 
+
+
 ///*
 // *
 // *
