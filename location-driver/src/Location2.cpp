@@ -128,7 +128,7 @@ double Location2::ConvertToRadian(double degree) {
 }
 
 Room* Location2::GetRoom(double X, double Y) {
-	for (int i = 0; i < RoomsLength; i++) {
+	for (unsigned int i = 0; i < RoomsLength; i++) {
 		if ((X >= Rooms[i].Box.X_Left_Bottom)
 				&& (X <= Rooms[i].Box.X_Right_Bottom)
 				&& (Y >= Rooms[i].Box.Y_Left_Bottom)
