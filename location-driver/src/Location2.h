@@ -58,10 +58,19 @@ private:
 	KernelBasedHoughTransform * kht;
 
 	Particle2 *Particles;
+	unsigned int NumberParticles;
+
+	unsigned int RoomsLength;
+	Room* Rooms;
 
 private:
 	void InitRoomsTable(char *pathMap);
 	void InitParticleTable(unsigned int numberParticles);
+	void InitDistributeParticles();
+
+	double ConvertToRadian(double degree);
+
+	Room* GetRoom(double X,double Y);
 
 public:
 	double Pos_X;

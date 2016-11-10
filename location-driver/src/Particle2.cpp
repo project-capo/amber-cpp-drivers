@@ -8,6 +8,9 @@
 #include "Particle2.h"
 
 Particle2::Particle2() {
+
+	wheelTrack =
+
 	// TODO Auto-generated constructor stub
 	 X =1.0;
 		 Y = 2.2;

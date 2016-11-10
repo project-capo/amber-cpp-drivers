@@ -10,4 +10,6 @@
 
 #define DIAGNOSTIC_MODE 1
 
+#define WHEELTRACK
+
 #endif /* COMMON_H_ */

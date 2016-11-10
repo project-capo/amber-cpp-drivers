@@ -26,9 +26,17 @@ public:
 	double P;
 	double Angle;
 
+private:
+	double wheelTrack;
+
+
 public:
 	Particle2();
 	virtual ~Particle2();
+
+	void Move(double Vl, double  Vr, double dt);
+
+
 
 
 };
