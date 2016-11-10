@@ -70,7 +70,7 @@ private:
 
 	double ConvertToRadian(double degree);
 
-	Room* GetRoom(double X,double Y);
+	Room* GetRoom(double X,double Y);	
 
 public:
 	double Pos_X;

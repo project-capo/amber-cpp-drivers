@@ -115,6 +115,7 @@ void Location2::RunLocation()
 					currentRoom = GetRoom(Particles[i].X,Particles[i].Y);
 				Particles[i].
 					}
+	Room* currentRoom;
 
 	}
 }
@@ -139,4 +140,15 @@ void Location2::InitDistributeParticles()
 double Location2::ConvertToRadian(double degree)
 {
 	return ((degree * M_PI) / 180);
+	currentRoom = GetRoom(Particles[i].X,Particles[i].Y);
+}
+
+Room* Location2::GetRoom(double X,double Y)
+{
+	for (int i = 0; i < RoomsLength; i++)
+	{
+		if((X >= Rooms[i].Box.X_Left_Bottom) && (X <= Rooms[i].Box.X_Right_Bottom) && (Y >= Rooms[i].Box.Y_Left_Bottom) && (Y <= Rooms[i].Box.Y_Left_Top))
+			return &(Rooms[i]);
+	}
+	return NULL;
 }
