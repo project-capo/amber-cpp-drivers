@@ -34,6 +34,7 @@
 #include "KernelBasedHoughTransform.h"
 #include "Particle2.h"
 #include "DiagnosticVisualisation.h"
+#include "Room.h"
 
 using namespace log4cxx;
 

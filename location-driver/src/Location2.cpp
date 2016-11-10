@@ -44,7 +44,9 @@ Location2::Location2(LoggerPtr logger, Settings *settings) {
 	IsWorking = true;
 
 #if DIAGNOSTIC_MODE == 1
-	diagnosticVisualisation = new DiagnosticVisualisation(new UdpClient(settings->DiagnosticIPAddress, 1234),settings->NumberParticles,Particles,RoboClaw,Hokuyo);
+	diagnosticVisualisation = new DiagnosticVisualisation(
+			new UdpClient(settings->DiagnosticIPAddress, 1234),
+			settings->NumberParticles, Particles, RoboClaw, Hokuyo);
 #endif
 }
 
@@ -78,11 +80,10 @@ void Location2::InitParticleTable(unsigned int numberParticles) {
 	//	Particles[i] = new Particle2();
 }
 
-void Location2::RunLocation()
-{
+void Location2::RunLocation() {
 	LOG4CXX_INFO(_logger, "RunLocation");
 
-	struct timeval start,end;
+	struct timeval start, end;
 	double speedRoboClaw;
 	double angleRoboClaw;
 	double deletaTime;
@@ -97,57 +98,41 @@ void Location2::RunLocation()
 
 	gettimeofday(&start, NULL);
 
-	while(IsWorking)
-	{
-			gettimeofday(&end, NULL);
-			deletaTime = ((end.tv_sec - start.tv_sec) * 1000 + (end.tv_usec - start.tv_usec)/1000.0) / 1000;
-			gettimeofday(&start, NULL);
+	while (IsWorking) {
+		gettimeofday(&end, NULL);
+		deletaTime = ((end.tv_sec - start.tv_sec) * 1000
+				+ (end.tv_usec - start.tv_usec) / 1000.0) / 1000;
+		gettimeofday(&start, NULL);
 
-			Hokuyo->GetScan();
-			speedRoboClaw = RoboClaw->GetSpeed(); //droga w metrach
-			angleRoboClaw = RoboClaw->GetAngle(deletaTime);
+		Hokuyo->GetScan();
+		speedRoboClaw = RoboClaw->GetSpeed(); //droga w metrach
+		angleRoboClaw = RoboClaw->GetAngle(deletaTime);
 
-			bestFitAngle = -kht->GetMainDirectionAngle(Hokuyo->GetAllAngles(), Hokuyo->GetAllDistances(), Hokuyo->ScanLengthAll);
-			bestFitAngle = ConvertToRadian(bestFitAngle);
+		bestFitAngle = -kht->GetMainDirectionAngle(Hokuyo->GetAllAngles(),
+				Hokuyo->GetAllDistances(), Hokuyo->ScanLengthAll);
+		bestFitAngle = ConvertToRadian(bestFitAngle);
 
-			for (unsigned int i = 0; i < NumberParticles; i++)
-					{
-					currentRoom = GetRoom(Particles[i].X,Particles[i].Y);
-				Particles[i].
-					}
-	Room* currentRoom;
-
+		for (unsigned int i = 0; i < NumberParticles; i++) {
+			currentRoom = GetRoom(Particles[i].X, Particles[i].Y);
+		}
 	}
 }
 
-Room* Location2::GetRoom(double X,double Y)
-{
-	for (int i = 0; i < RoomsLength; i++)
-	{
-		if((X >= Rooms[i].Box.X_Left_Bottom) && (X <= Rooms[i].Box.X_Right_Bottom) && (Y >= Rooms[i].Box.Y_Left_Bottom) && (Y <= Rooms[i].Box.Y_Left_Top))
-			return &(Rooms[i]);
-	}
-	return NULL;
-}
-
-void Location2::InitDistributeParticles()
-{
+void Location2::InitDistributeParticles() {
 	LOG4CXX_INFO(_logger, "InitDistributeParticles");
 
 }
 
-
-double Location2::ConvertToRadian(double degree)
-{
+double Location2::ConvertToRadian(double degree) {
 	return ((degree * M_PI) / 180);
-	currentRoom = GetRoom(Particles[i].X,Particles[i].Y);
 }
 
-Room* Location2::GetRoom(double X,double Y)
-{
-	for (int i = 0; i < RoomsLength; i++)
-	{
-		if((X >= Rooms[i].Box.X_Left_Bottom) && (X <= Rooms[i].Box.X_Right_Bottom) && (Y >= Rooms[i].Box.Y_Left_Bottom) && (Y <= Rooms[i].Box.Y_Left_Top))
+Room* Location2::GetRoom(double X, double Y) {
+	for (int i = 0; i < RoomsLength; i++) {
+		if ((X >= Rooms[i].Box.X_Left_Bottom)
+				&& (X <= Rooms[i].Box.X_Right_Bottom)
+				&& (Y >= Rooms[i].Box.Y_Left_Bottom)
+				&& (Y <= Rooms[i].Box.Y_Left_Top))
 			return &(Rooms[i]);
 	}
 	return NULL;
