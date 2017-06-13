@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package Aruco;
+
+message ArucoLocation {
+  required int32 RobotID = 1;
+  required double X = 2;
+  required double Y = 3;
+  required double Alfa = 4;
+  required int32 TimeStamp = 5;
+}
