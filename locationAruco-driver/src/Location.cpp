@@ -43,6 +43,8 @@ void Location::RunLocation()
 		{
 			arLocation.ParseFromArray(buffer,clientAruco->ReciveBufLen);
 
+			LOG4CXX_INFO(_logger, "Recive Aruco Data");
+
 			//przypisanie otrzymanej wartosci
 			this->Pos_X = arLocation.x();
 			this->Pos_Y = arLocation.y();
@@ -50,7 +52,7 @@ void Location::RunLocation()
 			this->Prop = 1.0;
 			this->timeStamp = (long long int) (end.tv_sec * 1000.0 + end.tv_usec/1000.0);
 
-			cout << "Lok" <<  this->Pos_X << "   " << this->Pos_Y  << endl;
+			//cout << "Lok" <<  this->Pos_X << "   " << this->Pos_Y  << endl;
 		}
 	}
 }
