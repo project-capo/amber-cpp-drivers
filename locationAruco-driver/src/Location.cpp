@@ -43,7 +43,7 @@ void Location::RunLocation()
 		{
 			arLocation.ParseFromArray(buffer,clientAruco->ReciveBufLen);
 
-			LOG4CXX_INFO(_logger, "Recive Aruco Data");
+			LOG4CXX_DEBUG(_logger, "Recive Aruco Data");
 
 			//przypisanie otrzymanej wartosci
 			this->Pos_X = arLocation.x();
