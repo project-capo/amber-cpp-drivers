@@ -189,7 +189,7 @@ void LocationController::operator()()
 
 amber::DriverMsg *LocationController::buildCurrentLocationMsg()
 {
-	LOG4CXX_INFO(_logger, "build current location msg");
+	LOG4CXX_DEBUG(_logger, "build current location msg");
 
 	amber::DriverMsg *message = new amber::DriverMsg();
 	message->set_type(amber::DriverMsg_MsgType_DATA);
